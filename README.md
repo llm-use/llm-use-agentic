@@ -12,6 +12,10 @@
 > 
 > 🆕 **Now with Real-Time Web Interface**: Watch the agent think and interact in real-time through an intelligent web interface with persistent memory and context awareness
 
+<p align="center">
+  <img src="./images/home.png" alt="LLM-USE AGENTIC Banner" width="100%">
+</p>
+
 ## 📋 Table of Contents
 
 - [Core Agentic Capabilities](#-core-agentic-capabilities)
