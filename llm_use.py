@@ -1427,18 +1427,21 @@ class ProductionRateLimiter:
 
 @dataclass
 class ModelConfig:
-    """Configurazione completa modello"""
+    """Configurazione completa modello - QUALITATIVA"""
     provider: str
     model_id: str
     display_name: str
     cost_per_1k_input: float
     cost_per_1k_output: float
-    quality_score: int  # 1-10 basato su dimensione e capacità
-    speed: str  # slow, medium, fast, ultra_fast
+    tier: str  # expert, professional, competent, basic, minimal
+    speed: str  # ultra_fast, fast, medium, slow
     context_window: int
-    best_for: List[str]
+    best_for: List[str]  # Lista qualitativa di use cases
+    avoid_for: List[str]  # Cosa evitare
     requires_key: bool
-    size_gb: float = 0.0  # Dimensione stimata in GB
+    size_gb: float = 0.0
+    complexity_range: Tuple[int, int] = (1, 10)  # Range di complessità adatto
+    personality: str = ""  # Stile di output
 
 # [Original MODEL_CATALOG remains the same]
 MODEL_CATALOG = {
@@ -1446,108 +1449,214 @@ MODEL_CATALOG = {
     "gpt-4o": ModelConfig(
         provider="openai",
         model_id="gpt-4o",
-        display_name="GPT-4 Optimized",
+        display_name="GPT-4 Optimized 🌟",
         cost_per_1k_input=0.005,
         cost_per_1k_output=0.015,
-        quality_score=10,
+        tier="expert",
         speed="medium",
         context_window=128000,
-        best_for=["complex_reasoning", "coding", "analysis"],
+        best_for=[
+            "complex reasoning and logic problems",
+            "advanced coding and debugging",
+            "deep technical analysis",
+            "research-level questions",
+            "mathematical proofs"
+        ],
+        avoid_for=[
+            "simple greetings",
+            "basic arithmetic",
+            "when speed is critical"
+        ],
+        complexity_range=(7, 10),
+        personality="Thorough, analytical, and precise",
         requires_key=True,
-        size_gb=100  # Stima
+        size_gb=100
     ),
+    
     "gpt-4o-mini": ModelConfig(
         provider="openai",
         model_id="gpt-4o-mini",
-        display_name="GPT-4 Mini",
+        display_name="GPT-4 Mini ⭐",
         cost_per_1k_input=0.00015,
         cost_per_1k_output=0.0006,
-        quality_score=8,
+        tier="professional",
         speed="fast",
         context_window=128000,
-        best_for=["general", "cost_effective"],
+        best_for=[
+            "general purpose queries",
+            "cost-effective solutions",
+            "moderate complexity tasks",
+            "quick analysis",
+            "standard coding tasks"
+        ],
+        avoid_for=[
+            "PhD-level research",
+            "extremely complex reasoning"
+        ],
+        complexity_range=(4, 8),
+        personality="Balanced and efficient",
         requires_key=True,
-        size_gb=20  # Stima
+        size_gb=20
     ),
+    
     "gpt-3.5-turbo": ModelConfig(
         provider="openai",
         model_id="gpt-3.5-turbo",
         display_name="GPT-3.5 Turbo",
         cost_per_1k_input=0.0005,
         cost_per_1k_output=0.0015,
-        quality_score=7,
+        tier="competent",
         speed="fast",
         context_window=16385,
-        best_for=["simple_tasks", "fast_responses"],
+        best_for=[
+            "simple queries",
+            "quick responses",
+            "basic explanations",
+            "light conversation",
+            "simple coding"
+        ],
+        avoid_for=[
+            "complex reasoning",
+            "advanced analysis",
+            "mathematical proofs"
+        ],
+        complexity_range=(1, 5),
+        personality="Quick and straightforward",
         requires_key=True,
-        size_gb=10  # Stima
+        size_gb=10
     ),
     
     # ANTHROPIC
     "claude-3-opus": ModelConfig(
         provider="anthropic",
         model_id="claude-3-opus-20240229",
-        display_name="Claude 3 Opus",
+        display_name="Claude 3 Opus 🌟",
         cost_per_1k_input=0.015,
         cost_per_1k_output=0.075,
-        quality_score=10,
+        tier="expert",
         speed="slow",
         context_window=200000,
-        best_for=["complex_analysis", "creative_writing", "research"],
+        best_for=[
+            "complex analysis requiring nuance",
+            "creative writing and storytelling",
+            "academic research",
+            "ethical reasoning",
+            "long-form content generation"
+        ],
+        avoid_for=[
+            "quick simple answers",
+            "when speed matters",
+            "basic calculations"
+        ],
+        complexity_range=(8, 10),
+        personality="Thoughtful, nuanced, and articulate",
         requires_key=True,
-        size_gb=150  # Stima
+        size_gb=150
     ),
+    
     "claude-3-sonnet": ModelConfig(
         provider="anthropic",
         model_id="claude-3-5-sonnet-20241022",
-        display_name="Claude 3.5 Sonnet",
+        display_name="Claude 3.5 Sonnet ⭐",
         cost_per_1k_input=0.003,
         cost_per_1k_output=0.015,
-        quality_score=9,
+        tier="professional",
         speed="medium",
         context_window=200000,
-        best_for=["balanced", "coding", "reasoning"],
+        best_for=[
+            "balanced performance tasks",
+            "coding with good explanations",
+            "detailed reasoning",
+            "technical documentation",
+            "moderate creative tasks"
+        ],
+        avoid_for=[
+            "ultra-fast responses needed",
+            "simple yes/no questions"
+        ],
+        complexity_range=(5, 9),
+        personality="Clear and comprehensive",
         requires_key=True,
-        size_gb=70  # Stima
+        size_gb=70
     ),
+    
     "claude-3-haiku": ModelConfig(
         provider="anthropic",
         model_id="claude-3-haiku-20240307",
-        display_name="Claude 3 Haiku",
+        display_name="Claude 3 Haiku ✓",
         cost_per_1k_input=0.00025,
         cost_per_1k_output=0.00125,
-        quality_score=7,
+        tier="competent",
         speed="ultra_fast",
         context_window=200000,
-        best_for=["simple_tasks", "fast_responses"],
+        best_for=[
+            "simple tasks needing speed",
+            "quick summaries",
+            "basic Q&A",
+            "light conversation",
+            "simple data processing"
+        ],
+        avoid_for=[
+            "complex reasoning",
+            "creative writing",
+            "deep analysis"
+        ],
+        complexity_range=(1, 5),
+        personality="Concise and efficient",
         requires_key=True,
-        size_gb=10  # Stima
+        size_gb=10
     ),
     
     # GROQ
     "llama-3.3-70b": ModelConfig(
         provider="groq",
         model_id="llama-3.3-70b-versatile",
-        display_name="Llama 3.3 70B (Groq)",
+        display_name="Llama 3.3 70B (Groq) ⭐",
         cost_per_1k_input=0.00059,
         cost_per_1k_output=0.00079,
-        quality_score=9,
+        tier="professional",
         speed="ultra_fast",
         context_window=128000,
-        best_for=["fast_quality", "general"],
+        best_for=[
+            "fast high-quality responses",
+            "general purpose with speed",
+            "real-time applications",
+            "conversational AI",
+            "quick analysis"
+        ],
+        avoid_for=[
+            "extremely complex research",
+            "tasks requiring slow deliberation"
+        ],
+        complexity_range=(4, 8),
+        personality="Fast and reliable",
         requires_key=True,
         size_gb=70
     ),
+    
     "mixtral-8x7b": ModelConfig(
         provider="groq",
         model_id="mixtral-8x7b-32768",
-        display_name="Mixtral 8x7B (Groq)",
+        display_name="Mixtral 8x7B (Groq) ✓",
         cost_per_1k_input=0.00024,
         cost_per_1k_output=0.00024,
-        quality_score=8,
+        tier="competent",
         speed="ultra_fast",
         context_window=32768,
-        best_for=["fast_responses", "general"],
+        best_for=[
+            "ultra-fast responses",
+            "general conversation",
+            "basic coding",
+            "simple explanations",
+            "real-time chat"
+        ],
+        avoid_for=[
+            "complex analysis",
+            "creative writing",
+            "deep technical topics"
+        ],
+        complexity_range=(2, 6),
+        personality="Quick and practical",
         requires_key=True,
         size_gb=45
     ),
@@ -1556,30 +1665,110 @@ MODEL_CATALOG = {
     "gemini-2.0-flash": ModelConfig(
         provider="google",
         model_id="gemini-2.0-flash-exp",
-        display_name="Gemini 2.0 Flash",
+        display_name="Gemini 2.0 Flash ⭐",
         cost_per_1k_input=0.0,
         cost_per_1k_output=0.0,
-        quality_score=8,
+        tier="professional",
         speed="ultra_fast",
         context_window=1048576,
-        best_for=["long_context", "multimodal"],
+        best_for=[
+            "extremely long context tasks",
+            "document analysis",
+            "multimodal tasks",
+            "free API usage",
+            "bulk processing"
+        ],
+        avoid_for=[
+            "tasks requiring specific formatting",
+            "when consistency is critical"
+        ],
+        complexity_range=(3, 7),
+        personality="Versatile and fast",
         requires_key=True,
-        size_gb=20  # Stima
+        size_gb=20
     ),
     
     # DEEPSEEK
     "deepseek-chat": ModelConfig(
         provider="deepseek",
         model_id="deepseek-chat",
-        display_name="DeepSeek Chat",
+        display_name="DeepSeek Chat ⭐",
         cost_per_1k_input=0.00014,
         cost_per_1k_output=0.00028,
-        quality_score=8,
+        tier="professional",
         speed="fast",
         context_window=64000,
-        best_for=["coding", "math", "chinese"],
+        best_for=[
+            "coding and debugging",
+            "mathematical problems",
+            "Chinese language tasks",
+            "technical explanations",
+            "algorithmic thinking"
+        ],
+        avoid_for=[
+            "creative writing",
+            "casual conversation",
+            "Western cultural references"
+        ],
+        complexity_range=(4, 8),
+        personality="Technical and precise",
         requires_key=True,
-        size_gb=20  # Stima
+        size_gb=20
+    ),
+    
+    # O1 MODELS (se vuoi aggiungerli)
+    "o1": ModelConfig(
+        provider="openai",
+        model_id="o1",
+        display_name="GPT-o1 (Reasoning) 🌟🌟",
+        cost_per_1k_input=0.015,
+        cost_per_1k_output=0.060,
+        tier="expert",
+        speed="slow",
+        context_window=200000,
+        best_for=[
+            "complex multi-step reasoning",
+            "mathematical proofs",
+            "puzzle solving",
+            "code debugging with deep analysis",
+            "research-level problems"
+        ],
+        avoid_for=[
+            "simple questions",
+            "when quick response needed",
+            "casual conversation"
+        ],
+        complexity_range=(8, 10),
+        personality="Methodical reasoning with chain-of-thought",
+        requires_key=True,
+        size_gb=200
+    ),
+    
+    "o1-mini": ModelConfig(
+        provider="openai",
+        model_id="o1-mini",
+        display_name="GPT-o1 Mini (Fast Reasoning) ⭐",
+        cost_per_1k_input=0.003,
+        cost_per_1k_output=0.012,
+        tier="professional",
+        speed="medium",
+        context_window=128000,
+        best_for=[
+            "moderate reasoning tasks",
+            "coding problems",
+            "math problems",
+            "logical puzzles",
+            "structured thinking"
+        ],
+        avoid_for=[
+            "creative writing",
+            "open-ended generation",
+            "simple lookups"
+        ],
+        complexity_range=(5, 8),
+        personality="Structured reasoning approach",
+        requires_key=True,
+        size_gb=50
     )
 }
 
@@ -1789,6 +1978,25 @@ class DeepSeekProvider(LLMProvider):
 class OllamaProvider(LLMProvider):
     def __init__(self):
         self.client = ollama if OLLAMA_AVAILABLE else None
+
+    def is_ollama_model_name(self, name: str) -> bool:
+        """Verifica se è un nome valido per Ollama"""
+        return ":" in name or not name.startswith("ollama_")
+
+    def fix_model_name(self, model: str) -> str:
+        """Converte model_id in nome Ollama valido"""
+        if model.startswith("ollama_"):
+            # ollama_gemma3_12b → gemma3:12b
+            fixed = model.replace("ollama_", "")
+            
+            # Trova dove mettere il ":"
+            # Esempi: gemma3_12b → gemma3:12b
+            #         gemma3_270m → gemma3:270m  
+            parts = fixed.split("_", 1)
+            if len(parts) == 2 and ":" not in fixed:
+                return f"{parts[0]}:{parts[1]}"
+            return fixed.replace("_", ":")
+        return model
     
     def is_available(self) -> bool:
         if not OLLAMA_AVAILABLE:
@@ -1799,10 +2007,11 @@ class OllamaProvider(LLMProvider):
         except:
             return False
     
+    
     def chat(self, messages: List[Dict], model: str, **kwargs) -> str:
         if not self.client:
             raise Exception("Ollama not available")
-            
+        model = self.fix_model_name(model)
         response = self.client.chat(
             model=model,
             messages=messages,
@@ -1890,46 +2099,228 @@ class ModelAutoDiscovery:
         self.benchmark_cache_file = Path.home() / ".llm-use" / "benchmarks.json"
         self.benchmark_cache_file.parent.mkdir(parents=True, exist_ok=True)
         self.benchmarks = self._load_benchmarks()
+        
+        # INIZIALIZZA QUALITY EVALUATOR AGENTICO
+        if OLLAMA_AVAILABLE:
+            try:
+                ollama_provider = OllamaProvider()
+                if ollama_provider.is_available():
+                    self.quality_evaluator = AgenticQualityEvaluator(
+                        ollama_provider, 
+                        verbose=verbose
+                    )
+                    if verbose:
+                        print("   🤖 Using AGENTIC quality evaluator")
+                else:
+                    self.quality_evaluator = None
+            except:
+                self.quality_evaluator = None
+        else:
+            self.quality_evaluator = None
     
     def _create_test_suite(self) -> Dict[str, Dict]:
-        """Suite di test per valutare capacità modelli"""
+        """Suite di test COMPLETA per differenziare OGNI livello di capacità"""
         return {
-            "simple_greeting": {
-                "prompt": "Hello! How are you?",
-                "category": "simple",
-                "expected_quality": "coherent_response",
-                "max_tokens": 50
+            # ========== LEVEL 1: ULTRA BASIC (tutti dovrebbero passare) ==========
+            "instant_response": {
+                "prompt": "Hi",
+                "category": "instant",
+                "expected_quality": "any_response",
+                "max_tokens": 10,
+                "complexity": 1
             },
-            "basic_math": {
-                "prompt": "What is 15 + 27?",
-                "category": "math",
-                "expected_quality": "correct_answer",
-                "correct_answer": "42",
-                "max_tokens": 20
+            "yes_no": {
+                "prompt": "Is 5 greater than 3? Answer only yes or no.",
+                "category": "binary",
+                "expected_quality": "correct_binary",
+                "correct_answer": "yes",
+                "max_tokens": 5,
+                "complexity": 1
             },
-            "reasoning": {
-                "prompt": "If all roses are flowers and some flowers fade quickly, can we conclude that some roses fade quickly? Explain your reasoning.",
-                "category": "reasoning",
-                "expected_quality": "logical_explanation",
-                "max_tokens": 150
+            
+            # ========== LEVEL 2: SIMPLE (modelli basic dovrebbero gestire) ==========
+            "simple_math": {
+                "prompt": "Calculate: 8 + 7",
+                "category": "arithmetic",
+                "expected_quality": "exact_number",
+                "correct_answer": "15",
+                "max_tokens": 10,
+                "complexity": 2
             },
-            "coding": {
-                "prompt": "Write a Python function to reverse a string. Just the function, no explanation.",
-                "category": "coding",
-                "expected_quality": "valid_code",
-                "max_tokens": 100
+            "basic_question": {
+                "prompt": "What color is the sky on a clear day?",
+                "category": "factual",
+                "expected_quality": "correct_fact",
+                "correct_answer": "blue",
+                "max_tokens": 20,
+                "complexity": 2
             },
-            "creativity": {
-                "prompt": "Complete this story in one sentence: The robot looked at the sunset and suddenly...",
-                "category": "creative",
-                "expected_quality": "creative_continuation",
-                "max_tokens": 50
+            
+            # ========== LEVEL 3-4: STANDARD (modelli competent iniziano qui) ==========
+            "word_problem": {
+                "prompt": "If John has 3 apples and Mary gives him 5 more, how many apples does John have?",
+                "category": "word_math",
+                "expected_quality": "correct_reasoning",
+                "correct_answer": "8",
+                "max_tokens": 50,
+                "complexity": 3
+            },
+            "explain_concept": {
+                "prompt": "Explain what recursion is in programming using simple words.",
+                "category": "explanation",
+                "expected_quality": "clear_explanation",
+                "max_tokens": 100,
+                "complexity": 4
+            },
+            "simple_code": {
+                "prompt": "Write a Python function that returns True if a number is even, False otherwise. Only the function.",
+                "category": "coding_basic",
+                "expected_quality": "working_code",
+                "max_tokens": 50,
+                "complexity": 4
+            },
+            
+            # ========== LEVEL 5-6: INTERMEDIATE (modelli professional iniziano qui) ==========
+            "logic_puzzle": {
+                "prompt": "All cats have tails. Fluffy is a cat. What can we conclude about Fluffy?",
+                "category": "logic",
+                "expected_quality": "valid_logic",
+                "correct_answer": "has a tail",
+                "max_tokens": 50,
+                "complexity": 5
+            },
+            "algorithm": {
+                "prompt": "Write a Python function to check if a string is a palindrome. Handle edge cases.",
+                "category": "coding_medium",
+                "expected_quality": "complete_solution",
+                "max_tokens": 150,
+                "complexity": 6
+            },
+            "multi_step_math": {
+                "prompt": "If a train travels 60 km/h for 2.5 hours, then 80 km/h for 1.5 hours, what's the total distance?",
+                "category": "multi_step",
+                "expected_quality": "correct_calculation",
+                "correct_answer": "270",
+                "max_tokens": 100,
+                "complexity": 5
+            },
+            
+            # ========== LEVEL 7-8: ADVANCED (solo modelli forti) ==========
+            "tricky_reasoning": {
+                "prompt": "A bat and a ball cost $1.10 total. The bat costs $1.00 more than the ball. How much does the ball cost? Think step by step.",
+                "category": "tricky_math",
+                "expected_quality": "correct_tricky",
+                "correct_answer": "0.05",
+                "max_tokens": 200,
+                "complexity": 7
+            },
+            "code_optimization": {
+                "prompt": "This Python code is O(n²): def has_duplicate(lst): for i in range(len(lst)): for j in range(i+1, len(lst)): if lst[i]==lst[j]: return True; return False. Rewrite it to be O(n).",
+                "category": "optimization",
+                "expected_quality": "optimized_code",
+                "max_tokens": 150,
+                "complexity": 8
             },
             "complex_analysis": {
-                "prompt": "What are the main differences between supervised and unsupervised learning in 2 sentences?",
-                "category": "technical",
-                "expected_quality": "accurate_technical",
-                "max_tokens": 100
+                "prompt": "Compare transformer architecture to LSTM for NLP tasks. Focus on attention mechanism vs sequential processing.",
+                "category": "technical_deep",
+                "expected_quality": "expert_analysis",
+                "max_tokens": 200,
+                "complexity": 8
+            },
+            
+            # ========== LEVEL 9-10: EXPERT (solo modelli top-tier) ==========
+            "advanced_math": {
+                "prompt": "Prove that the square root of 2 is irrational.",
+                "category": "proof",
+                "expected_quality": "valid_proof",
+                "max_tokens": 300,
+                "complexity": 9
+            },
+            "system_design": {
+                "prompt": "Design a distributed cache system that handles 1 million requests per second with sub-millisecond latency. List key components.",
+                "category": "architecture",
+                "expected_quality": "professional_design",
+                "max_tokens": 300,
+                "complexity": 9
+            },
+            "creative_complex": {
+                "prompt": "Write a haiku about quantum entanglement that accurately reflects the physics.",
+                "category": "creative_technical",
+                "expected_quality": "creative_and_accurate",
+                "max_tokens": 50,
+                "complexity": 8
+            },
+            "research_question": {
+                "prompt": "What are the main challenges in achieving artificial general intelligence and which approach (symbolic AI, connectionist, hybrid) is most promising?",
+                "category": "research",
+                "expected_quality": "research_level",
+                "max_tokens": 400,
+                "complexity": 10
+            },
+            
+            # ========== SPEED TESTS (differenzia per velocità) ==========
+            "speed_test_instant": {
+                "prompt": "Reply with 'ok'",
+                "category": "speed",
+                "expected_quality": "instant",
+                "correct_answer": "ok",
+                "max_tokens": 5,
+                "complexity": 1
+            },
+            "speed_test_quick": {
+                "prompt": "Count from 1 to 5",
+                "category": "speed",
+                "expected_quality": "quick_list",
+                "max_tokens": 20,
+                "complexity": 1
+            },
+            
+            # ========== STRESS TESTS (trova i limiti) ==========
+            "long_context": {
+                "prompt": "Summarize this in one sentence: " + "The weather is nice. " * 50,
+                "category": "context_handling",
+                "expected_quality": "coherent_summary",
+                "max_tokens": 50,
+                "complexity": 4
+            },
+            "error_recovery": {
+                "prompt": "Fix this code: def func(x) return x * 2 if x > else x",
+                "category": "error_handling",
+                "expected_quality": "fixed_code",
+                "max_tokens": 100,
+                "complexity": 6
+            },
+            "nuanced_question": {
+                "prompt": "Is AI dangerous? Provide a balanced view in 2 sentences.",
+                "category": "nuance",
+                "expected_quality": "balanced_response",
+                "max_tokens": 100,
+                "complexity": 7
+            },
+            
+            # ========== LANGUAGE UNDERSTANDING (test vero understanding) ==========
+            "ambiguity": {
+                "prompt": "The chicken is ready to eat. Who is eating?",
+                "category": "language_understanding",
+                "expected_quality": "ambiguity_recognition",
+                "max_tokens": 50,
+                "complexity": 6
+            },
+            "instruction_following": {
+                "prompt": "Write exactly 3 words about space. No more, no less.",
+                "category": "instruction",
+                "expected_quality": "exact_following",
+                "max_tokens": 10,
+                "complexity": 3
+            },
+            "context_awareness": {
+                "prompt": "I have 3 apples. I eat one. I buy 5 more. My friend takes 2. How many do I have?",
+                "category": "context_tracking",
+                "expected_quality": "correct_tracking",
+                "correct_answer": "5",
+                "max_tokens": 50,
+                "complexity": 5
             }
         }
     
@@ -1971,8 +2362,6 @@ class ModelAutoDiscovery:
                 model_size_gb = model_size_bytes / (1024**3) if model_size_bytes > 0 else 0
                 
                 model_base = model_name.split(':')[0]
-                
-                # Genera ID univoco
                 model_id = f"ollama_{model_base}_{model_name.replace(':', '_')}"
                 
                 # Controlla cache benchmark
@@ -1982,129 +2371,1234 @@ class ModelAutoDiscovery:
                     if benchmark_age_hours < 24:
                         use_cache = True
                         if self.verbose:
-                            print(f"✓ {model_name}: Using cached benchmark (age: {benchmark_age_hours:.1f}h)")
+                            print(f"✓ {model_name}: Using cached profile (age: {benchmark_age_hours:.1f}h)")
                 
                 if use_cache:
-                    discovered_models[model_id] = self._create_config_from_benchmark(
+                    # Usa benchmark dalla cache
+                    benchmark_results = self.benchmarks[model_id]
+                    config = self._create_config_from_benchmark(
                         model_name, 
-                        self.benchmarks[model_id],
+                        benchmark_results,
                         model_size_gb
                     )
+                    discovered_models[model_id] = config
                     continue
                 
-                # Esegui benchmark REALE
+                # Esegui benchmark con profiling qualitativo
                 if self.verbose:
                     print(f"\n🧪 Testing {model_name} ({model_size_gb:.1f}GB)")
-                    print(f"   Running test suite:")
                 
                 benchmark_results = self._benchmark_model(model_name)
                 benchmark_results['size_gb'] = model_size_gb
                 
-                # Mostra risultati in tempo reale
+                # Mostra risultati
                 if self.verbose:
-                    print(f"\n   📊 Results:")
-                    print(f"     Overall score: {benchmark_results['overall_score']:.2f}")
+                    print(f"\n   📊 Profile Summary:")
+                    print(f"     Tier: {benchmark_results.get('tier', 'unknown')}")
+                    print(f"     Speed: {benchmark_results.get('speed_profile', 'unknown')}")
+                    print(f"     Complexity range: {benchmark_results.get('complexity_min', 1)}-{benchmark_results.get('complexity_max', 10)}")
                     print(f"     Avg response time: {benchmark_results.get('avg_response_time', 0):.1f}s")
-                    print(f"     Capabilities: {', '.join(benchmark_results['capabilities']) or 'none'}")
-                    if benchmark_results.get('errors'):
-                        print(f"     ⚠️  Errors: {len(benchmark_results['errors'])}")
                 
                 # Salva risultati
                 self.benchmarks[model_id] = benchmark_results
                 self._save_benchmarks()
                 
-                # Crea configurazione basata su TEST REALI
+                # Crea configurazione
                 config = self._create_config_from_benchmark(model_name, benchmark_results, model_size_gb)
                 discovered_models[model_id] = config
                 
                 if self.verbose:
-                    self._print_benchmark_summary(model_name, config)
+                    self._print_model_summary(model_name, config, benchmark_results)
                     print()
-        
+            
+            # 🔥 FIX CRITICO: AGGIUNGI I MODELLI A available_models!
+            if discovered_models:
+                if self.verbose:
+                    print(f"\n✅ Registering {len(discovered_models)} models...")
+                
+                # Inizializza available_models se non esiste
+                if not hasattr(self, 'available_models'):
+                    self.available_models = {}
+                
+                # Aggiungi tutti i modelli scoperti
+                for model_id, config in discovered_models.items():
+                    self.available_models[model_id] = config
+                    if self.verbose:
+                        print(f"   ✓ Registered: {config.display_name}")
+                
+                if self.verbose:
+                    print(f"\n   📊 Total models available: {len(self.available_models)}")
+            
+            # SUMMARY FINALE
+            if self.verbose and discovered_models:
+                self._print_discovery_summary(discovered_models)
+            
+            return discovered_models
+            
         except Exception as e:
             if self.verbose:
-                print(f"⚠️ Error discovering Ollama models: {e}")
+                print(f"\n⚠️ Error discovering Ollama models: {e}")
                 import traceback
                 traceback.print_exc()
-        
-        return discovered_models
+            
+            # Anche in caso di errore, ritorna quello che hai scoperto
+            if discovered_models:
+                # Prova ad aggiungere comunque i modelli scoperti
+                if not hasattr(self, 'available_models'):
+                    self.available_models = {}
+                self.available_models.update(discovered_models)
+            
+            return discovered_models
     
-    def _benchmark_model(self, model_name: str) -> Dict:
-        """Esegue benchmark completo su un modello"""
-        results = {
-            "timestamp": time.time(),
-            "model_name": model_name,
-            "test_results": {},
-            "timings": [],
-            "capabilities": [],
-            "errors": [],
-            "overall_score": 0
+    def _print_model_summary(self, model_name: str, config: ModelConfig, benchmark: Dict):
+        """Stampa summary del modello - QUALITATIVO"""
+        print(f"   ✓ {config.display_name}")
+        print(f"     Tier: {config.tier.upper()} | Speed: {config.speed}")
+        print(f"     Complexity range: {config.complexity_range[0]}-{config.complexity_range[1]}")
+        
+        best_for = ', '.join(config.best_for[:3])
+        print(f"     Best for: {best_for}")
+        
+        if config.personality:
+            print(f"     Style: {config.personality[:80]}")
+
+    def _print_discovery_summary(self, discovered_models: Dict[str, ModelConfig]):
+        """Stampa summary finale della discovery"""
+        print(f"\n{'='*70}")
+        print(f"📊 DISCOVERY SUMMARY - {len(discovered_models)} MODELS PROFILED")
+        print(f"{'='*70}\n")
+        
+        # Raggruppa per tier
+        by_tier = {}
+        for model_id, config in discovered_models.items():
+            # Prendi il tier direttamente dalla config
+            tier = config.tier if hasattr(config, 'tier') else "unknown"
+            
+            if tier not in by_tier:
+                by_tier[tier] = []
+            
+            # Prepara info del modello
+            complexity_range = getattr(config, 'complexity_range', (1, 10))
+            model_info = {
+                'name': config.display_name,
+                'speed': config.speed,
+                'complexity': f"{complexity_range[0]}-{complexity_range[1]}",
+                'best_for': config.best_for[:2] if hasattr(config, 'best_for') else [],
+                'size': config.size_gb
+            }
+            by_tier[tier].append(model_info)
+        
+        # Ordine dei tier
+        tier_order = ["expert", "professional", "competent", "basic", "minimal", "unknown"]
+        tier_descriptions = {
+            "expert": "🌟🌟 EXPERT - Exceptional models for complex tasks",
+            "professional": "⭐ PROFESSIONAL - Solid and reliable for most work",
+            "competent": "✓ COMPETENT - Good for standard tasks",
+            "basic": "• BASIC - Limited to simple tasks",
+            "minimal": "· MINIMAL - Very basic capabilities",
+            "unknown": "? UNKNOWN - Not yet profiled"
         }
         
-        total_score = 0
-        test_count = 0
+        # Mostra per tier
+        for tier in tier_order:
+            if tier in by_tier:
+                print(f"{tier_descriptions.get(tier, tier.upper())}:")
+                print("-" * 70)
+                
+                # FIX: Ordina per dimensione usando la chiave del dizionario
+                sorted_models = sorted(by_tier[tier], key=lambda x: x['size'], reverse=True)
+                
+                # FIX: Itera sui dizionari, non tuple
+                for model in sorted_models:
+                    # Prima riga: nome, speed, complexity range
+                    print(f"  📦 {model['name']:<35} Speed: {model['speed']:<12} Complex: {model['complexity']:<5}")
+                    
+                    # Seconda riga: best for (se disponibile)
+                    if model['best_for']:
+                        best_for_str = ', '.join(model['best_for'][:2])
+                        if len(best_for_str) > 60:
+                            best_for_str = best_for_str[:57] + "..."
+                        print(f"     Best: {best_for_str}")
+                print()
+        
+        # Summary statistics
+        print("="*70)
+        print("📈 SUMMARY STATISTICS:")
+        print("-"*70)
+        
+        # Conta modelli per tier
+        tier_counts = {}
+        for tier in by_tier:
+            tier_counts[tier] = len(by_tier[tier])
+        
+        print("Distribution by tier:")
+        for tier in tier_order:
+            if tier in tier_counts:
+                bar = "█" * tier_counts[tier]
+                print(f"  {tier:<15} {bar} ({tier_counts[tier]})")
+        
+        # Speed distribution
+        speed_counts = {}
+        for model_id, config in discovered_models.items():
+            speed = config.speed
+            speed_counts[speed] = speed_counts.get(speed, 0) + 1
+        
+        print("\nDistribution by speed:")
+        for speed in ["ultra_fast", "fast", "medium", "slow"]:
+            if speed in speed_counts:
+                bar = "▓" * speed_counts[speed]
+                print(f"  {speed:<15} {bar} ({speed_counts[speed]})")
+        
+        # Complexity coverage
+        print("\nComplexity coverage:")
+        complexity_coverage = [False] * 10
+        for model_id, config in discovered_models.items():
+            if hasattr(config, 'complexity_range'):
+                min_c, max_c = config.complexity_range
+                for i in range(min_c-1, min(max_c, 10)):
+                    complexity_coverage[i] = True
+        
+        coverage_str = ""
+        for i in range(10):
+            if complexity_coverage[i]:
+                coverage_str += "█"
+            else:
+                coverage_str += "░"
+        print(f"  1 2 3 4 5 6 7 8 9 10")
+        print(f"  {' '.join(coverage_str)}")
+        
+        # Final message
+        print("\n" + "="*70)
+        if len(discovered_models) > 0:
+            expert_count = tier_counts.get("expert", 0)
+            prof_count = tier_counts.get("professional", 0)
+            
+            if expert_count > 0:
+                print("✅ Excellent model diversity! You have expert models for complex tasks.")
+            elif prof_count > 0:
+                print("✅ Good model selection! Professional models available for solid work.")
+            else:
+                print("ℹ️ Basic model set. Consider adding larger models for complex tasks.")
+        else:
+            print("⚠️ No models discovered.")
+        
+        print("🎯 Ready for intelligent qualitative routing!")
+        print("="*70 + "\n")
+        
+        # Mostra per tier
+        tier_order = ["expert", "professional", "competent", "basic", "minimal", "unknown"]
+        tier_emoji = {
+            "expert": "🌟",
+            "professional": "⭐",
+            "competent": "✓",
+            "basic": "○",
+            "minimal": "·"
+        }
+        
+        for tier in tier_order:
+            if tier in by_tier:
+                print(f"{tier_descriptions.get(tier, tier.upper())}:")
+                print("-" * 70)
+                
+                sorted_models = sorted(by_tier[tier], key=lambda x: x['size'], reverse=True)
+                
+                for model in sorted_models:
+                    # USA LE CHIAVI DEL DIZIONARIO!
+                    print(f"  📦 {model['name']:<35} Speed: {model['speed']:<12} Complex: {model['complexity']:<5}")
+                    
+                    # Mostra best_for se disponibile
+                    if model['best_for']:
+                        best_for_str = ', '.join(model['best_for'][:2])
+                        if len(best_for_str) > 60:
+                            best_for_str = best_for_str[:57] + "..."
+                        print(f"     Best: {best_for_str}")
+                print()
+        
+        print(f"{'='*70}")
+        print(f"✅ All models profiled and ready for intelligent routing!")
+        print(f"{'='*70}\n")
+    
+    def _benchmark_model(self, model_name: str) -> Dict:
+        """Crea un profilo basato su QUALITÀ REALE delle risposte"""
+        
+        if self.verbose:
+            print(f"\n🤖 Testing QUALITY of {model_name}")
+        
+        test_responses = {}
+        quality_scores = {}
         
         for test_name, test_config in self.test_suite.items():
             try:
-                if self.verbose:
-                    print(f"     Running {test_name}...", end='', flush=True)
-                
-                start_time = time.time()
-                
-                # Esegui test e ASPETTA la risposta completa
+                start = time.time()
                 response = ollama.chat(
                     model=model_name,
                     messages=[{"role": "user", "content": test_config["prompt"]}],
                     stream=False,
-                    options={
-                        'temperature': 0.3,
-                    }
+                    options={'temperature': 0.3}
                 )
+                elapsed = time.time() - start
                 
-                elapsed = time.time() - start_time
-                results["timings"].append(elapsed)
-                
-                # Ottieni risposta completa
                 response_text = response['message']['content']
                 
-                if self.verbose:
-                    print(f" ✓ {elapsed:.1f}s")
-                    if elapsed > 10:
-                        print(f"       (Long response time suggests large model)")
+                # 🔥 VALUTA LA QUALITÀ DELLA RISPOSTA
+                quality = self._evaluate_response_quality(
+                    test_config["prompt"],
+                    response_text,
+                    test_config["category"],
+                    elapsed
+                )
                 
-                # Valuta risposta
-                score = self._evaluate_response(response_text, test_config)
-                
-                results["test_results"][test_name] = {
-                    "score": score,
-                    "time": elapsed,
+                test_responses[test_name] = {
+                    "prompt": test_config["prompt"],
+                    "response": response_text,
                     "category": test_config["category"],
-                    "response": response_text[:200],
-                    "response_length": len(response_text)
+                    "time": elapsed,
+                    "quality_score": quality  # SALVA IL PUNTEGGIO
                 }
                 
-                # Aggiungi capability se test passato
-                if score >= 0.7:
-                    results["capabilities"].append(test_config["category"])
+                quality_scores[test_config["category"]] = quality
                 
-                total_score += score
-                test_count += 1
-                
-            except Exception as e:
-                error_msg = f"{test_name}: {str(e)}"
-                results["errors"].append(error_msg)
                 if self.verbose:
-                    print(f" ❌ {error_msg}")
+                    print(f"     {test_name}: Quality {quality:.1f}/10, Time {elapsed:.1f}s")
+                    
+            except Exception as e:
+                if self.verbose:
+                    print(f"     {test_name}: ❌ Failed - {e}")
+                quality_scores[test_config["category"]] = 0
         
-        # Calcola score complessivo
-        if test_count > 0:
-            results["overall_score"] = total_score / test_count
-            results["avg_response_time"] = sum(results["timings"]) / len(results["timings"]) if results["timings"] else 1.0
+        # 🔥 DETERMINA CAPACITÀ BASATE SU QUALITÀ REALE
+        profile = self._create_qualitative_profile(model_name, test_responses)
+            # Aggiungi metriche aggregate
+        avg_time = sum(r['time'] for r in test_responses.values() if r['time'] < 999) / len(test_responses)
+        avg_quality = sum(r.get('quality', 0) for r in test_responses.values()) / len(test_responses)
+        
+        profile['avg_response_time'] = avg_time
+        profile['avg_quality_score'] = avg_quality
+        profile['timestamp'] = time.time()
+        
+        # Aggiungi speed profile basato su tempo
+        if avg_time < 1:
+            profile['speed_profile'] = "ultra_fast"
+        elif avg_time < 3:
+            profile['speed_profile'] = "fast"
+        elif avg_time < 10:
+            profile['speed_profile'] = "medium"
+        else:
+            profile['speed_profile'] = "slow"
+        
+        return profile
+    
+    def _evaluate_response_quality(self, prompt: str, response: str, category: str, response_time: float) -> float:
+        """🤖 USA UN AGENT PER VALUTARE LA QUALITÀ"""
+        
+        evaluation_prompt = f"""<role>
+    You are a Response Quality Evaluator. Score this response quality from 1-10.
+    </role>
+
+    <test>
+    CATEGORY: {category}
+    QUESTION: {prompt}
+    RESPONSE: {response}
+    RESPONSE TIME: {response_time:.1f}s
+    </test>
+
+    <evaluation_criteria>
+    1. CORRECTNESS: Is the answer right?
+    2. COMPLETENESS: Does it fully address the question?
+    3. CLARITY: Is it well-expressed?
+    4. APPROPRIATENESS: Is it suitable for the question type?
+
+    For "{category}" tasks, focus on:
+    - simple: Can it respond appropriately to greetings?
+    - math: Is the calculation correct?
+    - reasoning: Is the logic sound?
+    - coding: Does the code work?
+    - creativity: Is it actually creative?
+    - technical: Is it accurate and detailed?
+    </evaluation_criteria>
+
+    Evaluate and output ONLY a number 1-10:"""
+
+        try:
+            eval_response = ollama.chat(
+                model="mistral",
+                messages=[{"role": "user", "content": evaluation_prompt}],
+                stream=False,
+                options={'temperature': 0.1}
+            )
+            
+            # Estrai score
+            import re
+            text = eval_response['message']['content']
+            numbers = re.findall(r'\b([1-9]|10)\b', text)
+            if numbers:
+                return float(numbers[-1])
+            return 5.0
+            
+        except:
+            return 5.0
+    
+    def _create_qualitative_profile(self, model_name: str, test_responses: Dict) -> Dict:
+        """🎯 Profilazione DETERMINISTICA basata SOLO sui dati reali dei test"""
+        
+        if self.verbose:
+            print(f"\n   📊 Analyzing test results for {model_name}...")
+        
+        # ANALISI DIRETTA DEI TEST - NO LLM AGENT
+        good_complexities = []
+        test_evidence = []
+        all_tests = []
+        
+        for test_name, data in test_responses.items():
+            complexity = self.test_suite.get(test_name, {}).get('complexity', 5)
+            quality = data.get('quality', data.get('quality_score', 0))
+            
+            all_tests.append((test_name, complexity, quality))
+            
+            if quality >= 7:
+                good_complexities.append(complexity)
+                test_evidence.append((test_name, complexity, quality))
+        
+        # CALCOLA STATISTICHE
+        avg_time = sum(r['time'] for r in test_responses.values()) / len(test_responses)
+        avg_quality = sum(r.get('quality', 5) for r in test_responses.values()) / len(test_responses)
+        
+        # DETERMINA RANGE E TIER BASANDOSI SUI DATI
+        if good_complexities:
+            min_good = min(good_complexities)
+            max_good = max(good_complexities)
             
             if self.verbose:
-                print(f"     Average response time: {results['avg_response_time']:.1f}s")
+                print(f"   ✅ Tests passed (≥7/10): {len(good_complexities)}")
+                print(f"      Complexity range: {min_good}-{max_good}")
+                # Mostra top 5
+                top_tests = sorted(test_evidence, key=lambda x: x[1], reverse=True)[:5]
+                for test, comp, qual in top_tests:
+                    print(f"      ✓ {test}: complexity {comp}, score {qual}/10")
+            
+            # ASSEGNA RANGE basato sul MASSIMO complexity passato
+            if max_good >= 9:
+                complexity_min, complexity_max = 8, 10
+                tier = "expert"
+                best_for = [
+                    "Complex analysis and research",
+                    "Expert-level problem solving",
+                    "Advanced technical discussions",
+                    "Challenging reasoning tasks"
+                ]
+                avoid_for = [
+                    "Simple queries (use smaller model for efficiency)",
+                    "Real-time applications if response time >5s"
+                ]
+                personality = "Sophisticated, thorough, and capable of handling complex topics"
+                
+            elif max_good >= 6:
+                complexity_min, complexity_max = 5, 8
+                tier = "professional"
+                best_for = [
+                    "Professional analysis and reasoning",
+                    "Technical explanations and documentation",
+                    "Moderate to complex problem solving",
+                    "Detailed Q&A on various topics"
+                ]
+                avoid_for = [
+                    "Cutting-edge research (needs expert model)",
+                    "Simple queries (use smaller model for efficiency)"
+                ]
+                personality = "Professional and comprehensive in responses"
+                
+            elif max_good >= 4:
+                complexity_min, complexity_max = 3, 5
+                tier = "basic"
+                best_for = [
+                    "General Q&A and assistance",
+                    "Standard explanations and summaries",
+                    "Everyday problem solving",
+                    "Basic technical queries"
+                ]
+                avoid_for = [
+                    "Complex technical analysis",
+                    "Expert-level reasoning",
+                    "Advanced coding tasks"
+                ]
+                personality = "Helpful and clear for general tasks"
+                
+            else:
+                complexity_min, complexity_max = 1, 3
+                tier = "minimal"
+                best_for = [
+                    "Simple queries and quick responses",
+                    "Basic factual questions",
+                    "Simple calculations"
+                ]
+                avoid_for = [
+                    "Complex reasoning",
+                    "Technical analysis",
+                    "Multi-step problems"
+                ]
+                personality = "Simple, direct, and fast"
+            
+            # PERSONALIZZA basandosi sui test specifici
+            categories_passed = {}
+            for test_name, complexity, quality in test_evidence:
+                category = test_responses[test_name].get('category', 'general')
+                if category not in categories_passed:
+                    categories_passed[category] = []
+                categories_passed[category].append((complexity, quality))
+            
+            # Aggiungi specializzazioni
+            if 'coding' in categories_passed or 'coding_basic' in categories_passed or 'coding_medium' in categories_passed:
+                if tier in ["expert", "professional"]:
+                    best_for.insert(1, "Code generation and debugging")
+            
+            if 'math' in categories_passed or 'arithmetic' in categories_passed or 'multi_step' in categories_passed:
+                if any(c[0] >= 5 for c in categories_passed.get('math', [])):
+                    best_for.append("Mathematical problem solving")
+            
+            if 'creative' in categories_passed or 'creative_technical' in categories_passed:
+                best_for.append("Creative writing tasks")
+            
+            # CALCOLA QUALITY SCORE
+            avg_quality_passed = sum(t[2] for t in test_evidence) / len(test_evidence)
+            quality_score = int(avg_quality_passed)
+            
+            # CALCOLA CONSISTENCY SCORE (bassa varianza = alta consistenza)
+            quality_scores = [t[2] for t in test_evidence]
+            variance = sum((q - avg_quality_passed)**2 for q in quality_scores) / len(quality_scores)
+            consistency_score = max(1, min(10, int(10 - variance)))
+            
+        else:
+            # Nessun test passato
+            complexity_min, complexity_max = 1, 3
+            tier = "minimal"
+            best_for = ["Very basic queries only"]
+            avoid_for = ["Most tasks requiring quality responses"]
+            personality = "Limited capabilities"
+            quality_score = 3
+            consistency_score = 5
+            
+            if self.verbose:
+                print(f"   ⚠️ No tests passed with score ≥7!")
         
-        return results
+        # DETERMINA SPEED
+        if avg_time < 1:
+            speed = "ultra_fast"
+        elif avg_time < 3:
+            speed = "fast"
+        elif avg_time < 10:
+            speed = "medium"
+        else:
+            speed = "slow"
+        
+        # STIMA SIZE basandosi su performance e tempo
+        if tier == "expert" and avg_time > 5:
+            estimated_size = "10-20GB"
+        elif tier == "professional":
+            estimated_size = "5-15GB"
+        elif tier == "basic":
+            estimated_size = "2-8GB"
+        else:
+            estimated_size = "<3GB"
+        
+        # CREA PROFILO FINALE
+        profile = {
+            "model_name": model_name,
+            "tier": tier,
+            "complexity_min": complexity_min,
+            "complexity_max": complexity_max,
+            "strengths": best_for[:3],  # Top 3
+            "weaknesses": avoid_for,
+            "best_for": best_for,
+            "avoid_for": avoid_for,
+            "speed_profile": speed,
+            "personality": personality,
+            "analysis": f"Handles complexity {min_good if good_complexities else 0}-{max_good if good_complexities else 0} successfully. {len(good_complexities)} tests passed.",
+            "inferred_size": estimated_size,
+            "quality_score": quality_score,
+            "consistency_score": consistency_score,
+            "confidence": "high" if len(test_evidence) >= 5 else "medium",
+            "special_notes": f"Tested on {len(test_responses)} tasks, passed {len(good_complexities)}",
+            "timestamp": time.time(),
+            "tests_passed": len(good_complexities),
+            "highest_complexity_passed": max_good if good_complexities else 0,
+            "avg_response_time": avg_time,
+            "avg_quality_score": avg_quality
+        }
+        
+        if self.verbose:
+            print(f"\n   🎯 Final Assessment:")
+            print(f"      Tier: {tier.upper()}")
+            print(f"      Range: {complexity_min}-{complexity_max}")
+            print(f"      Quality: {quality_score}/10")
+            print(f"      Speed: {speed}")
+        
+        return profile
+
+    def _build_test_transcript(self, model_name: str, test_responses: Dict) -> str:
+        """Costruisce transcript ULTRA-CHIARO e IMPOSSIBILE DA FRAINTENDERE per gli agent"""
+        
+        # Prima calcola TUTTI i dati chiave
+        passed_tests = []
+        failed_tests = []
+        
+        for test_name, data in test_responses.items():
+            complexity = self.test_suite.get(test_name, {}).get('complexity', 5)
+            quality = data.get('quality', 0)
+            
+            if quality >= 7:
+                passed_tests.append((test_name, complexity, quality))
+            else:
+                failed_tests.append((test_name, complexity, quality))
+        
+        # Calcola statistiche chiave
+        max_complexity_passed = max(p[1] for p in passed_tests) if passed_tests else 0
+        min_complexity_passed = min(p[1] for p in passed_tests) if passed_tests else 0
+        avg_time = sum(r['time'] for r in test_responses.values()) / len(test_responses)
+        avg_quality = sum(r.get('quality', 5) for r in test_responses.values()) / len(test_responses)
+        
+        # Determina il range CORRETTO
+        if max_complexity_passed >= 9:
+            correct_range = "8-10"
+            tier = "EXPERT"
+        elif max_complexity_passed >= 6:
+            correct_range = "5-8"
+            tier = "PROFESSIONAL"
+        elif max_complexity_passed >= 4:
+            correct_range = "3-5"
+            tier = "BASIC"
+        else:
+            correct_range = "1-3"
+            tier = "MINIMAL"
+        
+        # INIZIA CON UN RIEPILOGO IMPOSSIBILE DA IGNORARE
+        transcript = f"""
+    ╔════════════════════════════════════════════════════════════════════════╗
+    ║                         CRITICAL SUMMARY                                ║
+    ║                    READ THIS FIRST - DO NOT SKIP!                      ║
+    ╠════════════════════════════════════════════════════════════════════════╣
+    ║ MODEL: {model_name:<63} ║
+    ║ HIGHEST COMPLEXITY PASSED (≥7/10): {max_complexity_passed:<35} ║
+    ║                                                                        ║
+    ║ 🎯 MANDATORY RANGE ASSIGNMENT: {correct_range} ({tier}){' '*(39-len(correct_range)-len(tier)-3)}║
+    ║                                                                        ║
+    ║ ⚠️  DO NOT ASSIGN ANY OTHER RANGE! THIS IS BASED ON ACTUAL DATA!     ║
+    ╚════════════════════════════════════════════════════════════════════════╝
+
+    🚨 EVIDENCE SUMMARY:
+    - Tests Passed (≥7/10): {len(passed_tests)} out of {len(test_responses)}
+    - Complexity Range Handled Well: {min_complexity_passed}-{max_complexity_passed}
+    - Average Response Time: {avg_time:.1f}s
+    - Average Quality Score: {avg_quality:.1f}/10
+
+    📊 KEY FINDING: This model handles complexity up to level {max_complexity_passed} successfully.
+    Therefore, it MUST be classified as {correct_range} ({tier}).
+
+    ════════════════════════════════════════════════════════════════════════
+
+    🎯 DETAILED EVIDENCE - ALL TESTS PASSED (score ≥ 7/10):
+    """
+        
+        # Mostra i test passati IN ORDINE DI COMPLESSITÀ DECRESCENTE
+        if passed_tests:
+            for test_name, complexity, quality in sorted(passed_tests, key=lambda x: (x[1], x[2]), reverse=True):
+                transcript += f"   ✅ Level {complexity}: {test_name:<30} → {quality}/10"
+                if complexity >= 7:
+                    transcript += " ⭐ HIGH COMPLEXITY"
+                transcript += "\n"
+        else:
+            transcript += "   ❌ No tests passed with score ≥ 7/10\n"
+        
+        # Sezione di interpretazione
+        transcript += f"""
+    ════════════════════════════════════════════════════════════════════════
+
+    📋 INTERPRETATION GUIDE:
+    """
+        
+        if max_complexity_passed >= 9:
+            transcript += """
+    This model successfully handles EXPERT-LEVEL tasks (complexity 9-10).
+    → It should be used for the most complex, challenging queries.
+    → Classification: 8-10 (EXPERT)
+    """
+        elif max_complexity_passed >= 6:
+            transcript += """
+    This model successfully handles PROFESSIONAL-LEVEL tasks (complexity 6-8).
+    → It's suitable for advanced reasoning, analysis, and technical work.
+    → Classification: 5-8 (PROFESSIONAL)
+    """
+        elif max_complexity_passed >= 4:
+            transcript += """
+    This model successfully handles STANDARD tasks (complexity 4-5).
+    → It's good for everyday queries and basic problem-solving.
+    → Classification: 3-5 (BASIC)
+    """
+        else:
+            transcript += """
+    This model handles only SIMPLE tasks (complexity 1-3).
+    → Best for basic queries and simple responses.
+    → Classification: 1-3 (MINIMAL)
+    """
+        
+        # Test falliti (per completezza)
+        transcript += """
+    ════════════════════════════════════════════════════════════════════════
+
+    ❌ TESTS FAILED (score < 7/10):
+    """
+        
+        if failed_tests:
+            # Mostra solo i primi 10 test falliti per brevità
+            for test_name, complexity, quality in sorted(failed_tests, key=lambda x: x[2], reverse=True)[:10]:
+                transcript += f"   ❌ Level {complexity}: {test_name:<30} → {quality}/10\n"
+            if len(failed_tests) > 10:
+                transcript += f"   ... and {len(failed_tests) - 10} more failed tests\n"
+        else:
+            transcript += "   ✅ No failed tests!\n"
+        
+        # Dettagli completi per complessità
+        transcript += """
+    ════════════════════════════════════════════════════════════════════════
+
+    📊 COMPLETE TEST RESULTS BY COMPLEXITY LEVEL:
+    """
+        
+        # Organizza per complessità
+        tests_by_complexity = {}
+        for test_name, data in test_responses.items():
+            complexity = self.test_suite.get(test_name, {}).get('complexity', 5)
+            if complexity not in tests_by_complexity:
+                tests_by_complexity[complexity] = []
+            tests_by_complexity[complexity].append((test_name, data))
+        
+        # Mostra per ogni livello di complessità
+        for complexity in sorted(tests_by_complexity.keys(), reverse=True):
+            transcript += f"\n{'─'*70}\n"
+            transcript += f"COMPLEXITY LEVEL {complexity}/10:\n"
+            transcript += f"{'─'*70}\n"
+            
+            tests_at_level = tests_by_complexity[complexity]
+            passed_at_level = sum(1 for _, data in tests_at_level if data.get('quality', 0) >= 7)
+            
+            transcript += f"Tests at this level: {len(tests_at_level)} | Passed: {passed_at_level}\n\n"
+            
+            for test_name, data in sorted(tests_at_level, key=lambda x: x[1].get('quality', 0), reverse=True):
+                quality = data.get('quality', 5)
+                status = "✅ PASS" if quality >= 7 else "❌ FAIL"
+                
+                transcript += f"🔹 {test_name.upper()}\n"
+                transcript += f"   Status: {status} | Score: {quality}/10 | Time: {data['time']:.1f}s\n"
+                transcript += f"   Category: {data['category']}\n"
+                transcript += f"   Question: {data['prompt'][:150]}...\n"
+                
+                # Per test passati, mostra parte della risposta
+                if quality >= 7 and len(data['response']) > 0:
+                    transcript += f"   Good Response: {data['response'][:200]}...\n"
+                
+                transcript += "\n"
+        
+        # Statistiche finali
+        transcript += f"""
+    ════════════════════════════════════════════════════════════════════════
+
+    📈 FINAL STATISTICS:
+    - Total Tests Run: {len(test_responses)}
+    - Tests Passed (≥7/10): {len(passed_tests)} ({len(passed_tests)/len(test_responses)*100:.1f}%)
+    - Average Response Time: {avg_time:.2f}s
+    - Average Quality Score: {avg_quality:.1f}/10
+    - Complexity Range Handled: {min_complexity_passed if passed_tests else 0}-{max_complexity_passed}
+
+    🎯 FINAL CLASSIFICATION: {correct_range} ({tier})
+
+    ⚠️ REMINDER: Base your assessment on the HIGHEST COMPLEXITY PASSED, not averages!
+    ════════════════════════════════════════════════════════════════════════
+    """
+        
+        return transcript
+
+    
+
+    
+
+    
+    def _agent_validate_profile(self, profile: Dict, test_responses: Dict) -> Dict:
+        """🔍 AGENT VALIDATOR: Validazione e correzione completa del profilo basata sui dati reali"""
+        
+        # DEBUG: Mostra cosa stiamo ricevendo
+        if self.verbose:
+            print(f"\n   🔍 Validator receiving {len(test_responses)} test results")
+        
+        # Trova TUTTI i test dove il modello ha score ≥7
+        good_complexities = []
+        test_evidence = []
+        all_tests_debug = []  # Per debug
+        
+        for test_name, data in test_responses.items():
+            complexity = self.test_suite.get(test_name, {}).get('complexity', 5)
+            
+            # Gestisci diversi possibili nomi per il campo quality
+            quality = data.get('quality', data.get('quality_score', data.get('score', 0)))
+            
+            # Raccogli tutti i test per debug
+            all_tests_debug.append((test_name, complexity, quality))
+            
+            if quality >= 7:  # Test passato bene!
+                good_complexities.append(complexity)
+                test_evidence.append((test_name, complexity, quality))
+        
+        # DEBUG: Mostra i top test per quality
+        if self.verbose and len(all_tests_debug) > 0:
+            print(f"   📋 All test scores:")
+            for name, comp, qual in sorted(all_tests_debug, key=lambda x: x[2], reverse=True)[:10]:
+                print(f"      {name}: complexity {comp}, score {qual}/10")
+        
+        # Analizza i risultati
+        if good_complexities:
+            min_good = min(good_complexities)
+            max_good = max(good_complexities)
+            
+            if self.verbose:
+                print(f"\n   ✅ Tests passed (≥7/10): {len(good_complexities)}")
+                print(f"      Complexity range: {min_good}-{max_good}")
+                # Mostra evidenza dei test più complessi passati
+                top_tests = sorted(test_evidence, key=lambda x: x[1], reverse=True)[:5]
+                for test, comp, qual in top_tests:
+                    print(f"      ✓ {test}: complexity {comp}, score {qual}/10")
+            
+            # DETERMINA IL RANGE CORRETTO basato sul MASSIMO complexity passato
+            if max_good >= 9:
+                correct_range = (8, 10)
+                tier = "expert"
+            elif max_good >= 6:
+                correct_range = (5, 8)
+                tier = "professional"
+            elif max_good >= 4:
+                correct_range = (3, 5)
+                tier = "basic"
+            else:
+                correct_range = (1, 3)
+                tier = "minimal"
+            
+            # Determina best_for basandosi sui test effettivamente passati
+            best_for = []
+            avoid_for = []
+            
+            # Analizza quali categorie sono state gestite bene
+            categories_passed = {}
+            for test_name, complexity, quality in test_evidence:
+                category = test_responses[test_name].get('category', 'general')
+                if category not in categories_passed:
+                    categories_passed[category] = []
+                categories_passed[category].append((complexity, quality))
+            
+            # Crea best_for basato sulle categorie passate
+            if tier == "expert":
+                best_for = [
+                    "Complex analysis and research",
+                    "Expert-level problem solving",
+                    "Advanced technical discussions",
+                    "Challenging reasoning tasks"
+                ]
+                avoid_for = [
+                    "Simple queries (use smaller model)",
+                    "Real-time applications if response time >5s"
+                ]
+                personality = "Sophisticated, thorough, and capable of handling complex topics"
+                
+            elif tier == "professional":
+                best_for = [
+                    "Professional analysis and reasoning",
+                    "Technical explanations and documentation",
+                    "Moderate to complex problem solving",
+                    "Detailed Q&A on various topics"
+                ]
+                avoid_for = [
+                    "Cutting-edge research questions",
+                    "Simple queries (use smaller model)"
+                ]
+                personality = "Professional and comprehensive in responses"
+                
+            elif tier == "basic":
+                best_for = [
+                    "General Q&A and assistance",
+                    "Standard explanations and summaries",
+                    "Everyday problem solving",
+                    "Basic technical queries"
+                ]
+                avoid_for = [
+                    "Complex technical analysis",
+                    "Expert-level reasoning",
+                    "Advanced coding tasks"
+                ]
+                personality = "Helpful and clear for general tasks"
+                
+            else:  # minimal
+                best_for = [
+                    "Simple queries and quick responses",
+                    "Basic factual questions",
+                    "Simple calculations",
+                    "Quick information lookup"
+                ]
+                avoid_for = [
+                    "Complex reasoning",
+                    "Technical analysis",
+                    "Creative tasks",
+                    "Multi-step problems"
+                ]
+                personality = "Simple, direct, and fast"
+            
+            # Personalizza basandosi sui test specifici passati
+            if 'coding' in categories_passed or 'coding_basic' in categories_passed:
+                if tier in ["expert", "professional"]:
+                    best_for.append("Code generation and debugging")
+            
+            if 'math' in categories_passed or 'arithmetic' in categories_passed:
+                if any(c[0] >= 5 for c in categories_passed.get('math', [])):
+                    best_for.append("Mathematical problem solving")
+            
+            if 'creative' in categories_passed:
+                best_for.append("Creative writing tasks")
+                
+        else:
+            # Nessun test passato bene
+            correct_range = (1, 3)
+            tier = "minimal"
+            best_for = ["Very basic queries only"]
+            avoid_for = ["Most tasks requiring quality responses"]
+            personality = "Limited capabilities"
+            
+            if self.verbose:
+                print(f"\n   ⚠️ WARNING: No tests passed with score ≥7!")
+                print(f"      This model may have very limited capabilities")
+        
+        # APPLICA LE CORREZIONI se necessario
+        needs_correction = False
+        
+        # Controlla se il range deve essere corretto
+        if (profile.get('complexity_min', 0), profile.get('complexity_max', 0)) != correct_range:
+            needs_correction = True
+            if self.verbose:
+                print(f"\n   🔧 Correcting range from {profile.get('complexity_min', 0)}-{profile.get('complexity_max', 0)} to {correct_range[0]}-{correct_range[1]}")
+        
+        # Controlla se il tier deve essere corretto
+        if profile.get('tier', '').lower() != tier:
+            needs_correction = True
+            if self.verbose:
+                print(f"   🔧 Correcting tier from {profile.get('tier', 'unknown')} to {tier}")
+        
+        # Applica tutte le correzioni
+        if needs_correction:
+            profile['complexity_min'] = correct_range[0]
+            profile['complexity_max'] = correct_range[1]
+            profile['tier'] = tier
+            profile['best_for'] = best_for
+            profile['avoid_for'] = avoid_for
+            profile['personality'] = personality
+            
+            # Aggiungi metadati sulla correzione
+            profile['correction_applied'] = True
+            profile['correction_reason'] = f"Based on actual test performance (max complexity passed: {max_good if good_complexities else 0})"
+            profile['tests_passed'] = len(good_complexities)
+            profile['highest_complexity_passed'] = max_good if good_complexities else 0
+            
+            # Aggiorna anche il quality score basandosi sui test
+            if test_evidence:
+                avg_quality_of_passed = sum(t[2] for t in test_evidence) / len(test_evidence)
+                profile['quality_score'] = int(avg_quality_of_passed)
+        
+        # Aggiungi sempre informazioni di validazione
+        profile['validation_timestamp'] = time.time()
+        profile['validation_confidence'] = "high" if len(test_evidence) >= 5 else "medium" if len(test_evidence) >= 3 else "low"
+        
+        if self.verbose and needs_correction:
+            print(f"\n   ✅ Profile corrected successfully")
+            print(f"      Final assessment: {tier} ({correct_range[0]}-{correct_range[1]})")
+        
+        return profile
+
+
+    def _agent_evaluate_conversation(self, question: str, model_response: str, 
+                                    category: str, response_time: float) -> Dict:
+        """🤖 EVALUATOR AGENT analizza la risposta attraverso CONVERSAZIONE"""
+        
+        # L'evaluator "parla" con mistral per analizzare la risposta
+        evaluator_prompt = f"""<role>
+    You are an Expert Model Evaluator. You just witnessed a conversation between a user and an LLM model.
+    Your job is to evaluate the quality of the model's response through critical analysis.
+    </role>
+
+    <conversation>
+    USER ASKED ({category} task):
+    "{question}"
+
+    MODEL RESPONDED (in {response_time:.1f} seconds):
+    "{model_response}"
+    </conversation>
+
+    <your_evaluation_task>
+    Analyze this response as if you were reviewing a colleague's work. Ask yourself:
+
+    1. CORRECTNESS: Is this answer actually correct/appropriate?
+    - Would you trust this response?
+    - Are there any errors or misconceptions?
+    - For code: would it work? For math: is it right?
+
+    2. COMPLETENESS: Did the model fully answer the question?
+    - Is anything important missing?
+    - Is it too brief or too verbose?
+
+    3. QUALITY: How well is this written?
+    - Is it clear and coherent?
+    - Is the explanation good?
+    - Would a user be satisfied?
+
+    4. INTELLIGENCE: Does this response show real understanding?
+    - Or is it just pattern matching?
+    - Does it show reasoning ability?
+    - Is there depth or just surface level?
+    </your_evaluation_task>
+
+    <output_format>
+    Provide your honest evaluation:
+
+    QUALITY_SCORE: [0.0 to 1.0]
+    CORRECTNESS: [correct/partially-correct/incorrect]
+    COMPLETENESS: [complete/partial/incomplete]
+    CLARITY: [excellent/good/fair/poor]
+    INTELLIGENCE_LEVEL: [high/medium/low]
+
+    STRENGTHS: [what impressed you]
+    WEAKNESSES: [what concerned you]
+
+    OVERALL_ASSESSMENT: [2-3 sentences of your honest opinion]
+
+    RECOMMENDED_USE: [what tasks is this model suitable for based on this response]
+    </output_format>
+
+    Be honest and critical. This helps us route tasks to the right models.
+
+    Evaluate now:"""
+
+        try:
+            # L'evaluator (mistral) analizza
+            eval_response = ollama.chat(
+                model="mistral",
+                messages=[{"role": "user", "content": evaluator_prompt}],
+                stream=False,
+                options={'temperature': 0.2}
+            )
+            
+            eval_text = eval_response['message']['content']
+            
+            # Estrai valutazioni
+            import re
+            
+            def extract_score(text):
+                pattern = r"QUALITY_SCORE:\s*([0-9]*\.?[0-9]+)"
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    try:
+                        score = float(match.group(1))
+                        return max(0.0, min(1.0, score))
+                    except:
+                        pass
+                return 0.5
+            
+            def extract_field(text, field):
+                pattern = rf"{field}:\s*(.+?)(?:\n|$)"
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    return match.group(1).strip()
+                return ""
+            
+            def extract_assessment(text):
+                pattern = r"OVERALL_ASSESSMENT:\s*(.+?)(?:\n\n|RECOMMENDED|$)"
+                match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if match:
+                    return match.group(1).strip()
+                return ""
+            
+            quality = extract_score(eval_text)
+            correctness = extract_field(eval_text, "CORRECTNESS")
+            completeness = extract_field(eval_text, "COMPLETENESS")
+            clarity = extract_field(eval_text, "CLARITY")
+            intelligence = extract_field(eval_text, "INTELLIGENCE_LEVEL")
+            strengths = extract_field(eval_text, "STRENGTHS")
+            weaknesses = extract_field(eval_text, "WEAKNESSES")
+            assessment = extract_assessment(eval_text)
+            recommended = extract_field(eval_text, "RECOMMENDED_USE")
+            
+            # Converti valutazioni in score numerico
+            score = quality
+            
+            # Aggiusta basandosi su correttezza
+            if "incorrect" in correctness.lower():
+                score *= 0.5
+            elif "partially" in correctness.lower():
+                score *= 0.8
+            
+            return {
+                "score": score,
+                "quality": quality,
+                "correctness": correctness,
+                "completeness": completeness,
+                "clarity": clarity,
+                "intelligence": intelligence,
+                "strengths": [strengths] if strengths else [],
+                "weaknesses": [weaknesses] if weaknesses else [],
+                "analysis": eval_text,
+                "assessment": assessment,
+                "notes": f"Evaluator assessment: {assessment[:200]}...",
+                "recommended_use": recommended
+            }
+            
+        except Exception as e:
+            if self.verbose:
+                print(f"     ⚠️ Evaluator conversation failed: {e}")
+            
+            return {
+                "score": 0.5,
+                "quality": 0.5,
+                "analysis": f"Evaluation error: {str(e)}",
+                "strengths": [],
+                "weaknesses": ["Evaluation failed"],
+                "notes": "Evaluation error"
+            }
+    
+    def _evaluate_response_with_agent(self, response: str, test_config: Dict, 
+                                  response_time: float) -> Dict:
+        """🤖 USA UN LLM PER VALUTARE LA QUALITÀ DELLA RISPOSTA"""
+        
+        category = test_config.get("category", "general")
+        prompt_text = test_config.get("prompt", "")
+        
+        evaluation_prompt = f"""<role>
+    You are a Response Quality Evaluator Agent. Your job is to assess the quality of LLM responses.
+    </role>
+
+    <task>
+    A model was given this task:
+    CATEGORY: {category}
+    PROMPT: "{prompt_text}"
+
+    The model responded with:
+    "{response[:1000]}"
+
+    Response time: {response_time:.1f} seconds
+    Response length: {len(response.split())} words
+    </task>
+
+    <evaluation_criteria>
+    Evaluate the response on these dimensions (0.0 to 1.0 scale):
+
+    1. CORRECTNESS: Is the answer correct/appropriate?
+    2. COMPLETENESS: Does it fully answer the question?
+    3. COHERENCE: Is the response well-structured and clear?
+    4. RELEVANCE: Does it address what was asked?
+    5. DEPTH: For the category, is the response sufficiently detailed?
+    </evaluation_criteria>
+
+    <output_format>
+    Provide your evaluation in this EXACT format:
+
+    CORRECTNESS: [0.0-1.0]
+    COMPLETENESS: [0.0-1.0]
+    COHERENCE: [0.0-1.0]
+    RELEVANCE: [0.0-1.0]
+    DEPTH: [0.0-1.0]
+    OVERALL_QUALITY: [0.0-1.0]
+    STRENGTHS: [comma separated list]
+    WEAKNESSES: [comma separated list]
+    REASONING: [brief explanation]
+    </output_format>
+
+    Evaluate now:"""
+
+        try:
+            # Usa un modello veloce per valutare
+            eval_response = ollama.chat(
+                model="mistral",
+                messages=[{"role": "user", "content": evaluation_prompt}],
+                stream=False,
+                options={'temperature': 0.1}
+            )
+            
+            eval_text = eval_response['message']['content']
+            
+            # Estrai le valutazioni - USA RAW STRINGS
+            import re
+            
+            def extract_score(text, key):
+                pattern = rf"{key}:\s*([0-9]*\.?[0-9]+)"  # RAW STRING!
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    try:
+                        return float(match.group(1))
+                    except:
+                        return 0.5
+                return 0.5
+            
+            def extract_list(text, key):
+                pattern = rf"{key}:\s*(.+?)(?:\n|$)"  # RAW STRING!
+                match = re.search(pattern, text, re.IGNORECASE)
+                if match:
+                    items = match.group(1).strip()
+                    return [item.strip() for item in items.split(',') if item.strip()]
+                return []
+            
+            def extract_reasoning(text):
+                pattern = r"REASONING:\s*(.+?)(?:\n\n|$)"
+                match = re.search(pattern, text, re.IGNORECASE | re.DOTALL)
+                if match:
+                    return match.group(1).strip()
+                return ""
+            
+            correctness = extract_score(eval_text, "CORRECTNESS")
+            completeness = extract_score(eval_text, "COMPLETENESS")
+            coherence = extract_score(eval_text, "COHERENCE")
+            relevance = extract_score(eval_text, "RELEVANCE")
+            depth = extract_score(eval_text, "DEPTH")
+            overall = extract_score(eval_text, "OVERALL_QUALITY")
+            
+            strengths = extract_list(eval_text, "STRENGTHS")
+            weaknesses = extract_list(eval_text, "WEAKNESSES")
+            reasoning = extract_reasoning(eval_text)
+            
+            # Se overall non è stato trovato, calcolalo
+            if overall == 0.5 and correctness != 0.5:
+                overall = (correctness * 0.3 + completeness * 0.2 + 
+                        coherence * 0.2 + relevance * 0.2 + depth * 0.1)
+            
+            return {
+                "score": correctness,
+                "quality": overall,
+                "correctness": correctness,
+                "completeness": completeness,
+                "coherence": coherence,
+                "relevance": relevance,
+                "depth": depth,
+                "strengths": strengths,
+                "weaknesses": weaknesses,
+                "reasoning": reasoning
+            }
+            
+        except Exception as e:
+            if self.verbose:
+                print(f"     ⚠️ Agent evaluation failed: {e}")
+            
+            # Fallback minimo
+            return {
+                "score": 0.5,
+                "quality": 0.5,
+                "correctness": 0.5,
+                "completeness": 0.5,
+                "coherence": 0.5,
+                "relevance": 0.5,
+                "depth": 0.5,
+                "strengths": [],
+                "weaknesses": ["Evaluation failed"],
+                "reasoning": "Agent evaluation error"
+            }
     
     def _evaluate_response(self, response: str, test_config: Dict) -> float:
         """Valuta qualità della risposta (0-1)"""
@@ -2147,34 +3641,38 @@ class ModelAutoDiscovery:
         
         return score
     
-    def _calculate_quality_score(self, model_name: str, benchmark_results: Dict, size_gb: float) -> int:
+    def _calculate_quality_score(self, model_name: str, benchmark_results: Dict, 
+                            size_gb: float) -> int:
         """
-        Calcola quality score basato su PERFORMANCE REALE
+        Calcola quality score usando AGENT se disponibile
         """
-        test_score = benchmark_results.get("overall_score", 0.5)
-        avg_time = benchmark_results.get("avg_response_time", 1.0)
+        # USA L'AGENT SE DISPONIBILE
+        if self.quality_evaluator:
+            try:
+                return self.quality_evaluator.evaluate_model_quality(
+                    model_name, benchmark_results, size_gb
+                )
+            except Exception as e:
+                if self.verbose:
+                    print(f"⚠️ Agentic evaluation failed: {e}, using fallback")
         
-        if avg_time > 15:
-            size_factor = 9
-        elif avg_time > 10:
-            size_factor = 8
-        elif avg_time > 5:
-            size_factor = 7
-        elif avg_time > 2:
-            size_factor = 6
-        elif avg_time > 1:
-            size_factor = 5
+        # FALLBACK: Calcolo basato su dimensione
+        if size_gb < 1:
+            return 3
+        elif size_gb < 3:
+            return 4
+        elif size_gb < 5:
+            return 5
+        elif size_gb < 8:
+            return 6
+        elif size_gb < 12:
+            return 7
+        elif size_gb < 15:
+            return 8
+        elif size_gb < 20:
+            return 9
         else:
-            size_factor = 4
-        
-        capabilities = benchmark_results.get("capabilities", [])
-        capability_bonus = len(capabilities) * 0.3
-        
-        error_penalty = len(benchmark_results.get("errors", [])) * 0.5
-        
-        final_score = (test_score * 5) + (size_factor * 0.5) + capability_bonus - error_penalty
-        
-        return min(10, max(1, round(final_score)))
+            return 10
     
     def _calculate_speed(self, avg_response_time: float) -> str:
         """Determina velocità basata SOLO su tempo risposta"""
@@ -2188,49 +3686,92 @@ class ModelAutoDiscovery:
             return "slow"
     
     def _create_config_from_benchmark(self, model_name: str, benchmark: Dict, size_gb: float) -> ModelConfig:
-        """Crea ModelConfig basato sui risultati del benchmark"""
+        """Crea config dal profilo agentico - CON FIX per model naming"""
         
-        model_base = model_name.split(':')[0]
+        # ID interno del sistema (univoco)
+        model_id = f"ollama_{model_name.replace(':', '_')}"
         
-        quality_score = self._calculate_quality_score(model_name, benchmark, size_gb)
+        # Estrai valori dal benchmark
+        tier = benchmark.get('tier', 'competent')
+        speed = benchmark.get('speed_profile', 'medium')
+        complexity_min = benchmark.get('complexity_min', 3)
+        complexity_max = benchmark.get('complexity_max', 7)
         
-        avg_time = benchmark.get("avg_response_time", 1.0)
-        speed = self._calculate_speed(avg_time)
-        
-        capabilities = benchmark.get("capabilities", [])
-        best_for = ["local", "private"]
-        
-        if "coding" in capabilities:
-            best_for.append("coding")
-        if "reasoning" in capabilities:
-            best_for.append("reasoning")
-        if "technical" in capabilities:
-            best_for.append("technical")
-        if "creative" in capabilities:
-            best_for.append("creative")
-        if "math" in capabilities:
-            best_for.append("math")
-        
-        if len(best_for) == 2:
-            best_for.append("general")
-        
-        context_window = self._estimate_context_window(model_base)
-        display_name = self._generate_display_name(model_base, size_gb, quality_score)
-        
-        return ModelConfig(
+        # Crea la config con i parametri ESATTI che ModelConfig richiede
+        config = ModelConfig(
             provider="ollama",
-            model_id=model_name,
-            display_name=display_name,
+            model_id=model_id,
+            display_name=f"{model_name} ({size_gb:.1f}GB)",
+            
+            # Costi - Ollama è gratuito
             cost_per_1k_input=0.0,
             cost_per_1k_output=0.0,
-            quality_score=quality_score,
+            
+            # Parametri qualitativi dal benchmark
+            tier=tier,
             speed=speed,
-            context_window=context_window,
-            best_for=best_for,
+            
+            # Context window - stima basata su size
+            context_window=8192 if size_gb > 10 else 4096 if size_gb > 5 else 2048,
+            
+            # Liste qualitative
+            best_for=benchmark.get('best_for', ['general tasks']),
+            avoid_for=benchmark.get('avoid_for', []),
+            
+            # Ollama non richiede API key
             requires_key=False,
-            size_gb=size_gb
+            
+            # Dimensione
+            size_gb=size_gb,
+            
+            # Range di complessità dal profiling agentico
+            complexity_range=(complexity_min, complexity_max),
+            
+            # Personalità dal profiling
+            personality=benchmark.get('personality', 'Standard assistant')
         )
-    
+        
+        # 🔥 FIX CRITICO: Salva il nome ORIGINALE del modello per Ollama
+        if hasattr(config, '__dict__'):
+            # IMPORTANTE: questo è il nome che Ollama riconosce!
+            config.model_name = model_name  # Es: "gemma3:12b"
+            config.ollama_model_name = model_name  # Backup esplicito
+            
+            # Metadati dal profiling agentico
+            config.quality_score = benchmark.get('quality_score', 5)
+            config.avg_quality = benchmark.get('avg_quality_score', 5)
+            config.consistency_score = benchmark.get('consistency_score', 5)
+            config.confidence_level = benchmark.get('confidence', 'medium')
+            config.special_notes = benchmark.get('special_notes', '')
+            
+            # Capacità dedotte
+            config.capabilities = {
+                'reasoning': benchmark.get('avg_quality_score', 5) >= 7,
+                'coding': 'code' in ' '.join(benchmark.get('strengths', [])).lower() if benchmark.get('strengths') else False,
+                'math': 'math' in ' '.join(benchmark.get('strengths', [])).lower() if benchmark.get('strengths') else False,
+                'creative': 'creative' in ' '.join(benchmark.get('strengths', [])).lower() if benchmark.get('strengths') else False,
+                'analysis': benchmark.get('complexity_max', 5) >= 7,
+                'conversation': True,
+                'multilingual': False
+            }
+            
+            # Informazioni base
+            config.base_model = model_name.split(':')[0]
+            config.quantization = model_name.split(':')[1] if ':' in model_name else 'default'
+            
+            # Tempi di risposta
+            config.avg_response_time = benchmark.get('avg_response_time', 5.0)
+            
+            # Strengths e weaknesses dal profiling
+            config.strengths = benchmark.get('strengths', [])
+            config.weaknesses = benchmark.get('weaknesses', [])
+            
+            # Report completi degli agent (se vuoi conservarli per debug)
+            if benchmark.get('full_profile'):
+                config.full_agent_profile = benchmark.get('full_profile', '')
+        
+        return config
+
     def _estimate_context_window(self, model_base: str) -> int:
         """Stima context window basata su modello"""
         known_contexts = {
@@ -2291,67 +3832,126 @@ class ComplexityEvaluator(ABC):
         pass
 
 class MistralComplexityEvaluator(ComplexityEvaluator):
-    """Valuta complessità usando Mistral locale"""
+    """Valutazione agentica della complessità con reasoning chain"""
     
-    def __init__(self, ollama_provider):
+    def __init__(self, ollama_provider, verbose=True):
         self.provider = ollama_provider
+        self.verbose = verbose  # AGGIUNGI QUESTO!
     
     def evaluate(self, user_input: str) -> int:
-        prompt = f"""You are an expert at analyzing task complexity for LLM routing. Your job is to rate tasks from 1-10 to help select the right model.
+        prompt = f"""You are a Task Complexity Analyzer Agent. You must understand the TRUE complexity of any request through reasoning.
 
-<thinking_framework>
-Analyze the input across these dimensions:
-1. Cognitive Load: How much reasoning is required?
-2. Technical Depth: How specialized is the knowledge needed?
-3. Context Understanding: How much context interpretation is needed?
-4. Problem Solving: How complex is the problem to solve?
-5. Response Sophistication: How nuanced must the response be?
-</thinking_framework>
+    <user_message>
+    {user_input}
+    </user_message>
 
-<complexity_scale>
-1-2: Trivial (greetings, basic arithmetic, yes/no questions)
-3-4: Simple (factual questions, basic explanations, simple translations)
-5-6: Moderate (detailed explanations, basic coding, standard analysis)
-7-8: Complex (debugging, advanced reasoning, system design, error analysis)
-9-10: Expert (research problems, architecture design, cutting-edge topics)
-</complexity_scale>
+    <reasoning_framework>
+    To determine complexity, consider these dimensions:
 
-<key_indicators>
-Look for these patterns to guide your rating:
-• Length and structure of the input
-• Technical terminology and jargon
-• Multiple interconnected concepts
-• Need for creative or analytical thinking
-• Presence of code, errors, or system outputs
-• Requirement for specialized domain knowledge
-</key_indicators>
+    1. COGNITIVE LOAD
+    - How much thinking/reasoning is required?
+    - Is it recall of facts or generation of new ideas?
+    - Does it require understanding of multiple concepts?
 
-<task_to_evaluate>
-{user_input[:500]}{'...' if len(user_input) > 500 else ''}
-</task_to_evaluate>
+    2. EXECUTION DEPTH  
+    - Is it a single-step or multi-step process?
+    - Does it require planning and architecture?
+    - How many subsystems need to work together?
 
-Analyze this task and determine its complexity level.
-Think about what kind of model capabilities would be needed.
-Consider the depth of understanding and reasoning required.
+    3. EXPERTISE REQUIRED
+    - Can a child answer this?
+    - Does it need domain knowledge?
+    - Does it require specialized skills?
 
-Output ONLY a single number from 1 to 10:"""
+    4. OUTPUT SOPHISTICATION
+    - Is the expected output simple or complex?
+    - Does it need to be precise and detailed?
+    - Are there quality/performance requirements?
+
+    5. CONTEXTUAL AMBITION
+    - What is the user trying to achieve ultimately?
+    - Is this question part of a larger goal?
+    - What level of solution do they expect?
+    </reasoning_framework>
+
+    <complexity_scale>
+    Score each dimension 1-10, then synthesize:
+    - All dimensions low (1-2) → Final score 1-3
+    - Mixed low/medium → Final score 4-6  
+    - Mostly high → Final score 7-8
+    - All dimensions high → Final score 9-10
+
+    The final score should reflect the HIGHEST demanding dimension, not the average.
+    </complexity_scale>
+
+    Reason through the dimensions and provide a final complexity score from 1 to 10."""
 
         try:
             response = self.provider.chat(
                 messages=[{"role": "user", "content": prompt}],
                 model="mistral",
                 temperature=0.1,
-                max_tokens=50
+                max_tokens=500
             )
             
-            numbers = [int(char) for char in response if char.isdigit()]
-            if numbers:
-                return min(10, max(1, numbers[-1]))
-            return 5
+            # 🔥 PARSING ROBUSTO - trova il numero in QUALSIASI formato
+            import re
             
-        except:
-            return 5
-
+            # Pattern per trovare score in vari formati
+            patterns = [
+                r'score[:\s]+(\d+)',                    # score: 5, score 5
+                r'score\s+(?:is|of|=)\s+(\d+)',        # score is 5, score of 5
+                r'final\s+score[:\s]+(\d+)',           # final score: 5
+                r'final\s+score\s+(?:is|of|=)\s+(\d+)', # final score is 5
+                r'complexity[:\s]+(\d+)',              # complexity: 5
+                r'complexity\s+(?:is|of|=)\s+(\d+)',   # complexity is 5
+                r'score.*?(\d+)',                      # score ... 5 (qualsiasi cosa in mezzo)
+                r'\b(\d+)\s*(?:/10)?$',                # 5 o 5/10 alla fine
+                r'(?:^|\n)\s*(\d+)\s*$',               # numero solo su una riga
+            ]
+            
+            response_lower = response.lower()
+            
+            # Prova ogni pattern
+            for pattern in patterns:
+                matches = re.findall(pattern, response_lower, re.MULTILINE | re.IGNORECASE)
+                if matches:
+                    # Prendi l'ultimo match (probabilmente il finale)
+                    for match in reversed(matches):
+                        try:
+                            score = int(match)
+                            if 1 <= score <= 10:
+                                if self.verbose:
+                                    print(f"   → Complexity: {score}/10 (found with pattern: {pattern[:20]}...)")
+                                return score
+                        except:
+                            continue
+            
+            # 🔥 FALLBACK INTELLIGENTE basato su parole chiave
+            response_lower = response.lower()
+            
+            # Se parla di "simple", "greeting", "low", usa score basso
+            if any(word in response_lower for word in ['simple', 'greeting', 'trivial', 'basic', 'low']):
+                if self.verbose:
+                    print(f"   → Complexity: 2/10 (fallback: detected simple task)")
+                return 2
+            
+            # Se parla di "complex", "high", "difficult", usa score alto
+            if any(word in response_lower for word in ['complex', 'difficult', 'high', 'sophisticated']):
+                if self.verbose:
+                    print(f"   → Complexity: 7/10 (fallback: detected complex task)")
+                return 7
+            
+            # Default medio
+            if self.verbose:
+                print(f"   → Complexity: 4/10 (fallback: no clear indication)")
+            return 4
+            
+        except Exception as e:
+            if self.verbose:
+                print(f"⚠️ Complexity evaluation failed: {e}")
+            return 4
+        
 class HeuristicComplexityEvaluator(ComplexityEvaluator):
     """Advanced heuristic complexity evaluation with multi-dimensional analysis"""
     
@@ -2432,47 +4032,90 @@ class HeuristicComplexityEvaluator(ComplexityEvaluator):
         }
     
     def evaluate(self, user_input: str) -> int:
-        """Multi-dimensional complexity evaluation"""
+        """Multi-dimensional complexity evaluation - CONSERVATIVE"""
         
         input_lower = user_input.lower()
         word_count = len(user_input.split())
-        line_count = len(user_input.strip().split('\n'))
-        char_count = len(user_input)
         
-        base_complexity = self._calculate_base_complexity(word_count, line_count, char_count)
+        # Start with LOW base score
+        base_score = 3
         
-        pattern_score = 0
-        max_min_complexity = 1
-        min_max_complexity = 10
+        # SIMPLE PATTERNS - if matched, return immediately
+        simple_patterns = [
+            (r'^(hi|hello|hey|ciao|salve)\b', 1),
+            (r'^(how are you|come stai|what\'s up)', 1),
+            (r'^(what|cosa|che cos|qual è) (is|è|sono) \w+\??$', 2),
+            (r'^\d+\s*[\+\-\*/]\s*\d+', 2),
+            (r'^(explain|spiega|cos\'è|what is) \w+$', 3),
+            (r'^(list|elenca|dammi|give me) \w+', 3),
+            (r'^(translate|traduci)', 3),
+            (r'^(write|scrivi) (a|an|una?) (short|breve)', 4),
+        ]
         
-        for category, config in self.patterns.items():
-            matches = sum(1 for pattern in config['patterns'] 
-                         if re.search(pattern, input_lower, re.IGNORECASE))
-            
-            if matches > 0:
-                pattern_score += config['weight'] * (1 - (1 / (1 + matches)))
-                
-                if 'min_complexity' in config:
-                    max_min_complexity = max(max_min_complexity, config['min_complexity'])
-                if 'max_complexity' in config:
-                    min_max_complexity = min(min_max_complexity, config['max_complexity'])
+        for pattern, score in simple_patterns:
+            if re.search(pattern, input_lower):
+                print(f"[Complexity] Matched simple pattern: {pattern[:20]}... -> {score}")
+                return score
         
-        linguistic_score = self._analyze_linguistic_complexity(input_lower)
-        structural_score = self._analyze_structural_complexity(user_input)
-        density_score = self._calculate_information_density(user_input)
+        # Check length
+        if word_count < 10:
+            base_score = 2
+        elif word_count < 30:
+            base_score = 3
+        elif word_count < 100:
+            base_score = 4
+        else:
+            base_score = 5
         
-        final_complexity = (
-            base_complexity * 0.20 +
-            pattern_score * 0.35 +
-            linguistic_score * 0.20 +
-            structural_score * 0.15 +
-            density_score * 0.10
-        )
+        complexity_modifiers = 0
         
-        final_complexity = max(final_complexity, max_min_complexity)
-        final_complexity = min(final_complexity, min_max_complexity)
+        # ERROR PATTERNS (+3 only if actual debugging needed)
+        if re.search(r'(error|exception|traceback|failed)', input_lower):
+            if re.search(r'(fix|debug|solve|why|perché)', input_lower):
+                complexity_modifiers += 3
+            else:
+                complexity_modifiers += 1
         
-        return min(10, max(1, round(final_complexity)))
+        # CODE PATTERNS (+1 to +2 max)
+        code_indicators = [r'```', r'def ', r'class ', r'import ', r'function']
+        if any(re.search(p, user_input) for p in code_indicators):
+            if 'debug' in input_lower or 'fix' in input_lower:
+                complexity_modifiers += 2
+            else:
+                complexity_modifiers += 1
+        
+        # ANALYSIS KEYWORDS (+1)
+        analysis_words = ['analyze', 'compare', 'contrast', 'evaluate', 'analizza']
+        if any(word in input_lower for word in analysis_words):
+            complexity_modifiers += 1
+        
+        # EXPERT KEYWORDS (+2)
+        expert_words = ['architecture', 'microservice', 'distributed', 'algorithm', 
+                       'optimization', 'machine learning', 'neural network']
+        if any(word in input_lower for word in expert_words):
+            complexity_modifiers += 2
+        
+        # QUESTION WORDS (reduce complexity)
+        if re.search(r'^(what|when|where|who|why|how|qual|quando|dove|chi|perché|come)\b', input_lower):
+            if word_count < 20:
+                complexity_modifiers -= 1
+        
+        # Calculate final score
+        final_score = base_score + complexity_modifiers
+        
+        # CAP SCORES based on input length
+        if word_count < 20:
+            final_score = min(final_score, 5)
+        elif word_count < 50:
+            final_score = min(final_score, 6)
+        
+        # Never go below 1 or above 10
+        final_score = max(1, min(10, final_score))
+        
+        print(f"[Complexity] Words: {word_count}, Base: {base_score}, "
+              f"Modifiers: {complexity_modifiers}, Final: {final_score}")
+        
+        return final_score
     
     def _calculate_base_complexity(self, words: int, lines: int, chars: int) -> float:
         """Sophisticated base complexity calculation"""
@@ -2553,6 +4196,220 @@ class HeuristicComplexityEvaluator(ComplexityEvaluator):
         density = (unique_ratio * 2 + avg_length / 5 + punct_density * 10)
         
         return min(3, density)
+    
+# Aggiungi DOPO la classe HeuristicComplexityEvaluator
+
+class AgenticQualityEvaluator:
+    """Valutazione agentica della qualità dei modelli"""
+    
+    def __init__(self, ollama_provider, verbose=True):
+        self.provider = ollama_provider
+        self.verbose = verbose
+    
+    def evaluate_model_quality(self, model_name: str, benchmark_results: Dict, 
+                          size_gb: float) -> int:
+        """🤖 Decisione finale basata sulle conversazioni dell'evaluator"""
+        
+        avg_quality = benchmark_results.get("avg_quality_score", 0.5)
+        test_results = benchmark_results.get("test_results", {})
+        
+        # Costruisci report
+        performance_report = self._build_performance_report(
+            model_name, size_gb, test_results, 
+            benchmark_results.get("capabilities", []),
+            benchmark_results.get("avg_response_time", 0),
+            benchmark_results.get("overall_score", 0)
+        )
+        
+        # Prompt per decisione finale
+        final_prompt = f"""<role>
+    You are reviewing an evaluation report from an expert evaluator who tested an LLM model.
+    </role>
+
+    <report>
+    {performance_report}
+    </report>
+
+    <your_task>
+    The evaluator had actual conversations with the model "{model_name}" and assessed response quality.
+
+    Based on the evaluator's assessment of {avg_quality:.2f}/1.0 quality from real conversations:
+
+    Assign a final quality score 1-10:
+    - 0.80+ quality → 8-10
+    - 0.65-0.79 quality → 6-7
+    - 0.50-0.64 quality → 4-5
+    - Below 0.50 quality → 2-3
+
+    Look at the "EVALUATOR'S RECOMMENDATION" section.
+    </your_task>
+
+    <critical_instruction>
+    Your LAST LINE must be ONLY a single number from 1 to 10.
+    Example: if you decide score is 7, just write "7" on the last line.
+    </critical_instruction>
+
+    Provide your reasoning and final score:"""
+
+        try:
+            response = self.provider.chat(
+                messages=[{"role": "user", "content": final_prompt}],
+                model="mistral",
+                temperature=0.1,
+                max_tokens=400
+            )
+            
+            if self.verbose:
+                print(f"\n🤖 [Final Quality Decision for {model_name}]")
+                print(f"   Evaluator quality from conversations: {avg_quality:.2f}")
+            
+            # Estrai score
+            import re
+            lines = response.strip().split('\n')
+            
+            for line in reversed(lines):
+                line = line.strip()
+                
+                if line.isdigit() and 1 <= int(line) <= 10:
+                    score = int(line)
+                    if self.verbose:
+                        print(f"   ✅ Final Score: {score}/10")
+                    return score
+                
+                numbers = re.findall(r'\b([1-9]|10)\b', line)
+                if numbers:
+                    score = int(numbers[-1])
+                    if self.verbose:
+                        print(f"   ✅ Final Score: {score}/10")
+                    return score
+            
+            # Fallback BASATO SU CONVERSAZIONI
+            if avg_quality >= 0.80:
+                fallback = 9
+            elif avg_quality >= 0.65:
+                fallback = 7
+            elif avg_quality >= 0.50:
+                fallback = 5
+            else:
+                fallback = 3
+            
+            if self.verbose:
+                print(f"   Using conversation-based score: {fallback}/10")
+            
+            return fallback
+            
+        except Exception as e:
+            if self.verbose:
+                print(f"   ❌ Error: {e}")
+            return self._size_based_fallback(size_gb)
+    
+    def _build_performance_report(self, model_name: str, size_gb: float,
+                             test_results: Dict, capabilities: List[str],
+                             avg_time: float, overall_score: float) -> str:
+        """Report basato su conversazioni reali con evaluator agent"""
+        
+        report = f"""MODEL EVALUATION REPORT - CONVERSATIONAL ANALYSIS
+    {'='*70}
+    Model: {model_name}
+    Size: {size_gb:.1f} GB
+    {'='*70}
+
+    EVALUATOR AGENT ASSESSMENT:
+    (An expert evaluator had conversations with this model and analyzed responses)
+    """
+        
+        quality_scores = []
+        
+        for test_name, result in test_results.items():
+            quality = result.get('quality_score', 0.5)
+            quality_scores.append(quality)
+            
+            report += f"\n\n{test_name.upper()}:"
+            report += f"\n{'─'*70}"
+            
+            # Mostra estratto della conversazione
+            response_preview = result.get('response', '')[:200]
+            report += f"\nModel's response: \"{response_preview}...\""
+            
+            # Valutazione dell'evaluator
+            report += f"\n\nEvaluator's assessment:"
+            report += f"\n  Quality Score: {quality:.2f}/1.0"
+            
+            correctness = result.get('correctness', 'unknown')
+            clarity = result.get('clarity', 'unknown')
+            intelligence = result.get('intelligence', 'unknown')
+            
+            if correctness:
+                report += f"\n  Correctness: {correctness}"
+            if clarity:
+                report += f"\n  Clarity: {clarity}"
+            if intelligence:
+                report += f"\n  Intelligence Level: {intelligence}"
+            
+            # Note dell'evaluator
+            notes = result.get('evaluator_notes', '')
+            if notes:
+                report += f"\n  Notes: {notes[:150]}..."
+            
+            strengths = result.get('strengths', [])
+            weaknesses = result.get('weaknesses', [])
+            
+            if strengths and strengths[0]:
+                report += f"\n  ✓ Strengths: {strengths[0][:100]}"
+            if weaknesses and weaknesses[0]:
+                report += f"\n  ✗ Weaknesses: {weaknesses[0][:100]}"
+        
+        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0
+        
+        report += f"\n\n{'='*70}"
+        report += f"\nEVALUATOR'S OVERALL ASSESSMENT:"
+        report += f"\n{'='*70}"
+        report += f"\nAverage Quality (from conversation analysis): {avg_quality:.2f}/1.0"
+        report += f"\nCapabilities demonstrated: {len(capabilities)}/{len(test_results)}"
+        report += f"\nAverage response time: {avg_time:.1f}s"
+        
+        # Valutazione finale dell'evaluator
+        report += f"\n\nEVALUATOR'S RECOMMENDATION:"
+        
+        if avg_quality >= 0.80:
+            report += "\n🌟 EXCELLENT - Evaluator observed high-quality responses consistently"
+            report += "\n   This model showed strong understanding and good execution"
+            report += "\n   Recommended score: 8-10"
+        elif avg_quality >= 0.65:
+            report += "\n✅ GOOD - Evaluator found solid performance across tasks"
+            report += "\n   This model handled most questions well"
+            report += "\n   Recommended score: 6-7"
+        elif avg_quality >= 0.50:
+            report += "\n✓ ADEQUATE - Evaluator noted acceptable but not impressive responses"
+            report += "\n   This model can handle basic tasks"
+            report += "\n   Recommended score: 4-5"
+        else:
+            report += "\n⚠️ LIMITED - Evaluator observed significant issues"
+            report += "\n   This model struggled with most tasks"
+            report += "\n   Recommended score: 2-3"
+        
+        report += f"\n\n{'='*70}"
+        
+        return report
+    
+    def _size_based_fallback(self, size_gb: float) -> int:
+        """Fallback basato solo su dimensione"""
+        if size_gb < 1:
+            return 3
+        elif size_gb < 3:
+            return 4
+        elif size_gb < 5:
+            return 5
+        elif size_gb < 8:
+            return 6
+        elif size_gb < 12:
+            return 7
+        elif size_gb < 15:
+            return 8
+        elif size_gb < 20:
+            return 9
+        else:
+            return 10
 
 # ====================
 # LLM-USE CORE WITH PRODUCTION FEATURES
@@ -2632,7 +4489,11 @@ class LlmUse:
                 if any(name in model.lower() for name in ["mistral", "gemma", "phi"]):
                     if self.verbose:
                         print(f"   Using {model} for complexity evaluation")
-                    return MistralComplexityEvaluator(self.providers["ollama"])
+                    # PASSA verbose AL COSTRUTTORE
+                    return MistralComplexityEvaluator(
+                        self.providers["ollama"], 
+                        verbose=self.verbose  # AGGIUNGI QUESTO!
+                    )
         
         if self.verbose:
             print("   Using heuristic complexity evaluator")
@@ -2694,252 +4555,378 @@ class LlmUse:
     
     def _select_best_model(self, complexity: int, user_input: str) -> str:
         """
-        Seleziona modello basato su COMPLESSITÀ del task
+        🤖 ROUTING COMPLETAMENTE QUALITATIVO
+        Usa un agent per scegliere il modello migliore basandosi sui profili
         """
         if not self.available_models:
             raise Exception("No models available!")
         
-        if complexity <= 2:
-            min_quality = 1
-            priority = "speed"
-        elif complexity <= 4:
-            min_quality = 6
-            priority = "balanced"
-        elif complexity <= 6:
-            min_quality = 8
-            priority = "balanced"
-        elif complexity <= 8:
-            min_quality = 9
-            priority = "quality"
-        else:
-            min_quality = 9
-            priority = "max_quality"
+        # 🤖 L'AGENT SCEGLIE basandosi sui profili qualitativi
+        selected = self._agent_route_to_best_model(user_input, complexity)
         
-        suitable_models = [
-            (name, config) for name, config in self.available_models.items()
-            if config.quality_score >= min_quality
-        ]
+        if selected:
+            return selected
         
-        if not suitable_models:
-            suitable_models = sorted(
-                self.available_models.items(), 
-                key=lambda x: x[1].quality_score, 
-                reverse=True
-            )[:3]
+        # Fallback: scegli per complexity range
+        suitable = []
+        for model_id, config in self.available_models.items():
+            min_c, max_c = config.complexity_range
+            if min_c <= complexity <= max_c:
+                suitable.append((model_id, config))
         
-        if priority == "speed":
-            suitable_models.sort(key=lambda x: (
-                {"ultra_fast": 0, "fast": 1, "medium": 2, "slow": 3}.get(x[1].speed, 4),
-                -x[1].quality_score
-            ))
-        elif priority == "balanced":
-            suitable_models.sort(key=lambda x: (
-                -x[1].quality_score,
-                {"fast": 0, "medium": 1, "ultra_fast": 2, "slow": 3}.get(x[1].speed, 4)
-            ))
-        elif priority == "quality":
-            suitable_models.sort(key=lambda x: (
-                -x[1].quality_score,
-                {"medium": 0, "slow": 1, "fast": 2, "ultra_fast": 3}.get(x[1].speed, 4)
-            ))
-        else:
-            suitable_models.sort(key=lambda x: -x[1].quality_score)
+        if not suitable:
+            suitable = list(self.available_models.items())
         
-        selected = suitable_models[0][0]
+        # Ordina per tier
+        tier_priority = {"expert": 4, "professional": 3, "competent": 2, "basic": 1, "minimal": 0}
+        suitable.sort(key=lambda x: tier_priority.get(x[1].tier, 0), reverse=True)
         
-        if self.verbose:
-            print(f"\n   [DEBUG] Priority: {priority}, Min quality: {min_quality}")
-            print(f"   [DEBUG] Suitable models: {len(suitable_models)}")
-            if len(suitable_models) > 0:
-                print(f"   [DEBUG] Top 3 choices:")
-                for i, (name, config) in enumerate(suitable_models[:3], 1):
-                    print(f"     {i}. {config.display_name} (Q:{config.quality_score}, S:{config.speed})")
-        
-        return selected
+        return suitable[0][0]
     
-    def _get_selection_reason(self, complexity: int) -> str:
-        """Genera spiegazione per la selezione"""
-        if complexity <= 2:
-            return "Very simple task - minimal model sufficient"
-        elif complexity <= 4:
-            return "Simple task - basic model adequate"
-        elif complexity <= 6:
-            return "Moderate task - balanced model needed"
-        elif complexity <= 8:
-            return "Complex task - high quality model required"
-        else:
-            return "Very complex task - maximum capability needed"
-    
-    def chat(self, user_input: str) -> str:
-        """Chat principale con routing automatico e production features"""
-        # Check cache first
-        model_name = self.evaluate_and_route(user_input)
-        config = self.available_models[model_name]
+    def _agent_route_to_best_model(self, user_input: str, complexity: int) -> Optional[str]:
+        """🤖 AGENT sceglie il modello migliore basandosi sui PROFILI QUALITATIVI"""
         
-        # Check cache if enabled
-        cached_response = None
-        if self.cache:
-            cached_response = self.cache.get(
-                config.provider, config.model_id,
-                self.context.get_messages_for_api(),
-                temperature=0.7, max_tokens=2000
+        # FIX: Verifica che il router abbia un provider valido
+        if not hasattr(self.router, 'provider'):
+            if self.verbose:
+                print("⚠️ [Routing] Router has no provider, using fallback")
+            return None
+        
+        if not self.router.provider:
+            if self.verbose:
+                print("⚠️ [Routing] Router provider is None, using fallback")
+            return None
+        
+        # Verifica che il provider sia disponibile
+        try:
+            if not self.router.provider.is_available():
+                if self.verbose:
+                    print("⚠️ [Routing] Router provider not available, using fallback")
+                return None
+        except Exception as e:
+            if self.verbose:
+                print(f"⚠️ [Routing] Error checking provider: {e}, using fallback")
+            return None
+        
+        # Costruisci la descrizione di tutti i modelli disponibili
+        models_description = ""
+        model_list = []
+        
+        # 🆕 Organizza i modelli per tier per aiutare l'agent
+        models_by_tier = {'minimal': [], 'basic': [], 'competent': [], 'professional': [], 'expert': []}
+        
+        for i, (model_id, config) in enumerate(self.available_models.items(), 1):
+            tier = config.tier if hasattr(config, 'tier') else 'unknown'
+            
+            models_description += f"\n{'='*60}\n"
+            models_description += f"MODEL {i}: {config.display_name}\n"
+            models_description += f"{'='*60}\n"
+            models_description += f"Tier: {tier.upper()}\n"
+            models_description += f"Speed: {config.speed}\n"
+            models_description += f"Complexity range: {config.complexity_range[0]}-{config.complexity_range[1]}\n"
+            models_description += f"Size: {config.size_gb:.1f}GB\n"
+            
+            models_description += f"\nBEST FOR:\n"
+            for use_case in config.best_for[:5]:
+                models_description += f"  ✓ {use_case}\n"
+            
+            if config.avoid_for:
+                models_description += f"\nAVOID FOR:\n"
+                for use_case in config.avoid_for[:3]:
+                    models_description += f"  ✗ {use_case}\n"
+            
+            if config.personality:
+                models_description += f"\nPersonality: {config.personality[:100]}\n"
+            
+            model_list.append(model_id)
+            
+            # Aggiungi alla categorizzazione
+            if tier in models_by_tier:
+                models_by_tier[tier].append(f"Model {i}: {config.display_name} ({config.size_gb:.1f}GB)")
+        
+        # Se non ci sono modelli, ritorna None
+        if not model_list:
+            if self.verbose:
+                print("⚠️ [Routing] No models available for routing")
+            return None
+        
+        # 🆕 Crea un summary per tier per aiutare l'agent
+        tier_summary = "\n📊 MODELS BY EFFICIENCY TIER:\n"
+        tier_summary += "================================\n"
+        for tier in ['minimal', 'basic', 'competent', 'professional', 'expert']:
+            if models_by_tier[tier]:
+                tier_summary += f"\n{tier.upper()} (for complexity {self._get_tier_complexity_range(tier)}):\n"
+                for model in models_by_tier[tier]:
+                    tier_summary += f"  • {model}\n"
+        
+        # 🤖 PROMPT OTTIMIZZATO PER ROUTING INTELLIGENTE
+        routing_prompt = f"""<role>
+You are a Model Selection Expert. Your task: match COGNITIVE COMPLEXITY of the request to MODEL CAPABILITY.
+</role>
+
+<fundamental_principle>
+Every request has an INTRINSIC COGNITIVE LOAD - the mental effort needed to produce a quality answer.
+Your job: Estimate this load, then select the model with matching cognitive capability.
+</fundamental_principle>
+
+<user_request>
+"{user_input}" ← SOLO QUESTO, non la storia
+Estimated complexity score: {complexity}/10
+</user_request>
+
+<cognitive_load_framework>
+Analyze the request across these universal dimensions:
+
+1. INFORMATION PROCESSING DEPTH
+   └─ Surface (recall/repeat) vs Deep (analyze/synthesize/create)
+
+2. KNOWLEDGE DOMAIN LEVEL  
+   └─ Common (everyone knows) vs Specialized (experts know) vs Cutting-edge (researchers know)
+
+3. REASONING COMPLEXITY
+   └─ Zero-step (direct) vs Multi-step (sequential) vs Parallel (simultaneous considerations)
+
+4. OUTPUT REQUIREMENTS
+   └─ Simple (word/phrase) vs Structured (paragraph/code) vs Rigorous (proof/formal)
+
+5. ABSTRACTION LEVEL
+   └─ Concrete (specific facts) vs Abstract (concepts/patterns/principles)
+
+6. CREATIVE/GENERATIVE DEMAND
+   └─ Reproduce (existing) vs Adapt (modify) vs Innovate (create new)
+</cognitive_load_framework>
+
+<capability_tiers>
+Match cognitive load to model tier:
+
+MINIMAL CAPABILITY (Basic models):
+• Information: Surface-level recall
+• Knowledge: Common, everyday concepts  
+• Reasoning: Zero or single-step
+• Output: Simple, direct responses
+• Abstraction: Concrete, specific
+• Generation: Pure reproduction
+→ Complexity: 1-3/10
+
+MODERATE CAPABILITY (Professional models):
+• Information: Moderate depth analysis
+• Knowledge: Technical but standard
+• Reasoning: Multi-step sequential
+• Output: Structured, organized
+• Abstraction: Mix concrete and conceptual
+• Generation: Adaptation of known patterns
+→ Complexity: 4-7/10
+
+MAXIMUM CAPABILITY (Expert models):
+• Information: Deep synthesis and creation
+• Knowledge: Specialized or cutting-edge
+• Reasoning: Complex parallel reasoning
+• Output: Rigorous, formal, innovative
+• Abstraction: High-level principles
+• Generation: Novel solutions/proofs
+→ Complexity: 8-10/10
+</capability_tiers>
+
+<universal_indicators>
+Indicators of MINIMAL load (use smallest models):
+• Request seeks single fact/definition
+• Expected output is 1-5 words
+• No reasoning chain required
+• Common knowledge domain
+• Pure recall/recognition task
+
+Indicators of MAXIMUM load (use largest models):
+• Request requires PROVING something
+• Request requires DESIGNING/ARCHITECTING something
+• Request requires DERIVING from first principles
+• Request uses specialized academic/research terminology
+• Request demands mathematical/logical rigor
+• Request asks to CREATE something novel
+• Multiple domains must be synthesized
+</universal_indicators>
+
+{tier_summary}
+
+<available_models_detail>
+{models_description}
+</available_models_detail>
+
+<selection_methodology>
+Step 1: DECOMPOSE the request
+- What TYPE of mental operation is required?
+- What DEPTH of processing is needed?
+- What KNOWLEDGE level is assumed?
+
+Step 2: MAP to cognitive load
+- Is this a recall task? → Low load
+- Is this an explanation task? → Medium load  
+- Is this a creation/proof task? → High load
+
+Step 3: MATCH to model capability
+- Low load → Basic tier sufficient
+- Medium load → Professional tier needed
+- High load → Expert tier required
+
+Step 4: SELECT specific model
+- Within tier, choose based on:
+  * For low load: smallest/fastest
+  * For medium load: balanced
+  * For high load: most capable
+
+Step 5: SANITY CHECK
+- "Would a smaller tier FAIL at this task?"
+  * If NO → use smaller tier
+  * If YES → current selection correct
+- "Does this tier have the KNOWLEDGE needed?"
+  * If NO → go up one tier
+  * If YES → selection correct
+</selection_methodology>
+
+<meta_reasoning>
+Ask yourself these universal questions:
+
+Q1: "What would happen if I gave this to the smallest model?"
+└─ If answer would be PERFECT → use smallest
+└─ If answer would be WRONG → need larger
+└─ If answer would be INCOMPLETE → need larger
+
+Q2: "What makes this request HARD?"
+└─ Nothing → Basic tier
+└─ Technical knowledge → Professional tier  
+└─ Theoretical rigor → Expert tier
+
+Q3: "What is the user REALLY asking for?"
+└─ A fact → Basic
+└─ An explanation → Professional
+└─ A proof/design/innovation → Expert
+
+Q4: "Could this request appear in..."
+└─ Casual conversation → Basic
+└─ Professional work → Professional
+└─ Academic research → Expert
+</meta_reasoning>
+
+<output_format>
+Reason through:
+1. What cognitive operations does this require?
+2. What tier has those capabilities?
+3. Which specific model in that tier?
+
+Then output:
+SELECTED: [number]
+REASON: [explain the cognitive match]
+</output_format>
+
+ANALYZE THE COGNITIVE LOAD AND SELECT:"""
+
+        try:
+            # L'agent sceglie con temperature ancora più bassa per consistency
+            response = self.router.provider.chat(
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": """You are an expert Model Router. 
+            
+Your goal: Select the model that will give the BEST QUALITY answer for the given request.
+
+Rules:
+1. Match task complexity to model capability
+2. For simple tasks (greetings, definitions): Basic models are PERFECT
+3. For technical tasks (code, analysis): Professional models needed
+4. For expert tasks (proofs, CUDA, architecture): ONLY expert models work
+5. When in doubt about complexity: choose the MORE capable model
+
+Focus on answer QUALITY, not efficiency."""
+                    },
+                    {
+                        "role": "user", 
+                        "content": routing_prompt
+                    }
+                ],
+                model="mistral",  # O il tuo modello di routing preferito
+                temperature=0.05,  # Molto bassa per decisioni consistenti
+                max_tokens=800
             )
             
-            if cached_response:
-                if self.verbose:
-                    print(f"   ⚡ Using cached response")
-                
-                if self.metrics:
-                    self.metrics.record_cache_event("hit")
-                
-                # Add to context
-                self.context.add_message("user", user_input, None)
-                self.context.add_message("assistant", cached_response, model_name)
-                
-                # Update stats
-                self._update_stats(model_name, config, len(user_input), 
-                                 len(cached_response), 0, cache_hit=True)
-                
-                return cached_response
-        
-        if self.cache:
-            if self.metrics:
-                self.metrics.record_cache_event("miss")
-        
-        # Check rate limits
-        if self.rate_limiter:
-            allowed = self.rate_limiter.wait_if_limited(config.provider, 
-                                                       config.model_id, max_wait=5.0)
-            if not allowed:
-                if self.logger:
-                    self.logger.warning(f"Rate limit exceeded for {config.provider}")
-                
-                # Try fallback
-                return self._fallback_chat(user_input, exclude=model_name)
-        
-        # Prepare messages
-        self.context.add_message("user", user_input, None)
-        messages = self.context.get_messages_for_api()
-        
-        # Make API call
-        provider = self.providers[config.provider]
-        
-        try:
-            start_time = time.time()
-            
-            # API call with metrics
-            if self.metrics:
-                with self.metrics.time(f"api_call_{config.provider}"):
-                    response = provider.chat(
-                        messages=messages,
-                        model=config.model_id,
-                        temperature=0.7,
-                        max_tokens=2000
-                    )
+            # Gestisci la risposta che potrebbe essere un dict o una stringa
+            if isinstance(response, dict):
+                response_text = response.get('message', {}).get('content', '')
             else:
-                response = provider.chat(
-                    messages=messages,
-                    model=config.model_id,
-                    temperature=0.7,
-                    max_tokens=2000
-                )
+                response_text = str(response)
             
-            elapsed = time.time() - start_time
+            # 🆕 Debug: mostra il ragionamento dell'agent
+            if self.verbose and len(response_text) > 0:
+                # Estrai il ragionamento iniziale
+                lines = response_text.split('\n')
+                for line in lines[:5]:  # Prime 5 righe del ragionamento
+                    if line.strip():
+                        print(f"   🤔 {line.strip()}")
             
-            # Reset backoff on success
-            if self.rate_limiter:
-                self.rate_limiter.reset_backoff(config.provider)
+            # Estrai la scelta
+            import re
             
-            # Cache response
-            if self.cache:
-                self.cache.set(
-                    config.provider, config.model_id, messages,
-                    response, temperature=0.7, max_tokens=2000
-                )
+            # Cerca "SELECTED: X"
+            patterns = [
+                r'SELECTED:\s*\[?[Mm]odel\s*(\d+)\]?',  # [Model 7] o Model 7
+                r'SELECTED:\s*(\d+)',                     # Solo numero
+                r'[Mm]odel\s*(\d+).*(?:selected|choose|pick)', # Model 7 selected/chosen
+                r'(?:select|choose|pick).*[Mm]odel\s*(\d+)',   # I select Model 7
+            ]
+
+            match = None
+            for pattern in patterns:
+                match = re.search(pattern, response_text, re.IGNORECASE)
+                if match:
+                    break
+            if match:
+                selected_num = int(match.group(1))
+                if 1 <= selected_num <= len(model_list):
+                    selected_model_id = model_list[selected_num - 1]
+                    
+                    # Estrai il reasoning
+                    reason_match = re.search(r'REASON:\s*(.+?)(?:\n|$)', response_text, re.IGNORECASE | re.DOTALL)
+                    reason = reason_match.group(1).strip() if reason_match else "Agent selected"
+                    
+                    if self.verbose:
+                        selected_config = self.available_models[selected_model_id]
+                        print(f"\n🎯 [Agent Routing Decision]")
+                        print(f"   Selected: {selected_config.display_name} ({selected_config.size_gb:.1f}GB)")
+                        print(f"   Tier: {selected_config.tier}")
+                        print(f"   Reason: {reason[:150]}")
+                        
+                        # 🆕 Avviso se sembra overengineered
+                        if complexity <= 2 and selected_config.tier in ['professional', 'expert']:
+                            print(f"   ⚠️ Warning: Expert model for simple request?")
+                    
+                    return selected_model_id
+                else:
+                    if self.verbose:
+                        print(f"⚠️ [Routing] Agent selected invalid model number: {selected_num}")
+            else:
+                if self.verbose:
+                    print(f"⚠️ [Routing] Agent didn't select clearly")
+                    if len(response_text) > 0:
+                        print(f"   Response preview: {response_text[:200]}...")
             
-            # Add to context
-            self.context.add_message("assistant", response, model_name)
-            
-            # Calculate tokens and cost
-            input_tokens = len(user_input) // 4
-            output_tokens = len(response) // 4
-            cost = (input_tokens * config.cost_per_1k_input + 
-                   output_tokens * config.cost_per_1k_output) / 1000
-            
-            # Update various tracking systems
-            self._update_stats(model_name, config, len(user_input), 
-                             len(response), elapsed)
-            
-            # Log to database
-            if self.db:
-                call_id = self.db.log_api_call(
-                    self.session_id, config.provider, config.model_id,
-                    user_input, response, input_tokens, output_tokens,
-                    int(elapsed * 1000), cost, True,
-                    complexity_score=self.router.evaluate(user_input)
-                )
-                
-                self.db.update_session(
-                    self.session_id,
-                    messages=1,
-                    tokens_input=input_tokens,
-                    tokens_output=output_tokens,
-                    cost=cost
-                )
-            
-            # Record metrics
-            if self.metrics:
-                self.metrics.record_api_call(
-                    config.provider, config.model_id, True,
-                    elapsed * 1000, input_tokens, output_tokens, cost,
-                    complexity=self.router.evaluate(user_input)
-                )
-            
-            # Log API call
-            if self.logger:
-                self.logger.log_api_call(
-                    config.provider, config.model_id,
-                    input_tokens, output_tokens, elapsed, True
-                )
-            
-            if self.verbose:
-                self._print_response_info(config, elapsed)
-            
-            return response
+            return None
             
         except Exception as e:
-            error_msg = f"Error with {config.display_name}: {str(e)}"
-            
-            # Log error
-            if self.logger:
-                self.logger.error(error_msg, extra={
-                    'provider': config.provider,
-                    'model': config.model_id
-                })
-            
-            # Record error in database
-            if self.db:
-                self.db.log_api_call(
-                    self.session_id, config.provider, config.model_id,
-                    user_input, None, 0, 0, 0, 0, False,
-                    error_message=str(e)
-                )
-            
-            # Record error metrics
-            if self.metrics:
-                self.metrics.record_api_call(
-                    config.provider, config.model_id, False,
-                    0, 0, 0, 0
-                )
-            
-            # Apply backoff
-            if self.rate_limiter:
-                self.rate_limiter.apply_backoff(config.provider, e)
-            
             if self.verbose:
-                print(f"\n❌ {error_msg}")
-            
-            return self._fallback_chat(user_input, exclude=model_name)
+                print(f"❌ [Routing] Agent error: {str(e)}")
+                import traceback
+                traceback.print_exc()
+            return None
+
+    def _get_tier_complexity_range(self, tier: str) -> str:
+        """Helper per ottenere il range di complessità per tier"""
+        ranges = {
+            'minimal': '1-2',
+            'basic': '2-4', 
+            'competent': '4-6',
+            'professional': '6-8',
+            'expert': '8-10'
+        }
+        return ranges.get(tier, '?-?')
     
     def _fallback_chat(self, user_input: str, exclude: str) -> str:
         """Fallback su altro modello se il principale fallisce"""
@@ -3073,7 +5060,7 @@ class LlmUse:
 # ====================
 
 class LLMUSEV2(LlmUse):
-    """llm-use con auto-discovery, benchmarking e production features"""
+    """llm-use con auto-discovery, profiling qualitativo e production features"""
     
     def __init__(self, verbose: bool = True, auto_discover: bool = True, 
                  enable_production: bool = True):
@@ -3082,6 +5069,9 @@ class LLMUSEV2(LlmUse):
         
         self.verbose = verbose
         self.auto_discover = auto_discover
+        
+        # SALVA I PROFILI QUALITATIVI
+        self.discovered_profiles = {}
         
         # Discover models
         if auto_discover:
@@ -3102,6 +5092,10 @@ class LLMUSEV2(LlmUse):
         
         for model_id, config in discovered.items():
             self.available_models[model_id] = config
+            
+            # SALVA IL PROFILO
+            if model_id in discoverer.benchmarks:
+                self.discovered_profiles[model_id] = discoverer.benchmarks[model_id]
         
         if self.verbose and discovered:
             print(f"\n✅ Added {len(discovered)} Ollama models to catalog")
