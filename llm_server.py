@@ -1270,7 +1270,7 @@ async def startup_event():
 @app.get("/")
 async def root():
     """Serve main HTML page"""
-    html_path = Path("arena_frontend.html")
+    html_path = Path("home.html")
     if not html_path.exists():
         return HTMLResponse(content=create_default_html())
     
